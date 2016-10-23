@@ -1,10 +1,11 @@
-add_subdirectory (googletest)
-include_directories (../include googletest/googletest/include)
+# Build Google Test library.
+add_subdirectory(googletest)
+include_directories(../include googletest/googletest/include)
 
-file (GLOB SRC *)
-
+# The tests.
+file(GLOB SRC *)
 add_executable (unit-test ${SRC})
-target_link_libraries (unit-test alenka-file gtest gtest_main)
+target_link_libraries (unit-test ${LIBS_TO_LINK} gtest gtest_main)
 
 # Download test files if needed. This is a workaround for GitHub's screwed up LFS system.
 add_custom_command(TARGET PRE_BUILD unit-test COMMAND bash download-data.sh WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/unit-test/data)

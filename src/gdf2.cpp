@@ -3,17 +3,58 @@
 #include <algorithm>
 #include <cassert>
 #include <cstring>
-#include <vector>
 
 using namespace std;
+
+namespace
+{
+
+void readRecord(fstream& file, char* rawBuffer, double* samples, int n, int sampleSize, const function<double (void*)>& convertor, bool isLittleEndian)
+{
+	file.read(rawBuffer, sampleSize*n);
+
+	if (isLittleEndian == false)
+	{
+		for (int i = 0; i < n; ++i)
+		{
+			DataFile::changeEndianness(rawBuffer + i*sampleSize, sampleSize);
+		}
+	}
+
+	for (int i = 0; i < n; i++)
+	{
+		samples[i] = convertor(rawBuffer);
+		rawBuffer += sampleSize;
+	}
+}
+
+/**
+ * @brief calibrateSamples
+ *
+ * This must be used in order to scale the samples properly.
+ * The samples are usually stored as ineger values and must be "adjusted"
+ * to get the proper floating point value.
+ *
+ * When this is not used, the raw data is returned.
+ */
+void calibrateSamples(double* samples, int n, double digitalMinimum, double scale, double physicalMinimum)
+{
+	for (int i = 0; i < n; i++)
+	{
+		samples[i] -= digitalMinimum;
+		samples[i] /= scale;
+		samples[i] += physicalMinimum;
+	}
+}
+
+}
 
 GDF2::GDF2(const string& filePath, bool uncalibrated) : DataFile(filePath)
 {
 	isLittleEndian = testLittleEndian();
 
-	string fp = filePath + ".gdf";
-	file.open(fp);
-	assert(file.is_open() && "File was not successfully opened.");
+	file.open(filePath + ".gdf");
+	assert(file.is_open() && "File GDF2 was not successfully opened.");
 
 	// Load fixed header.
 	seekFile(0, true);
@@ -204,12 +245,17 @@ case a_:\
 	int64_t dataRecordBytes = vh.samplesPerRecord[0]*getChannelCount()*dataTypeSize;
 	startOfEventTable = startOfData + dataRecordBytes*fh.numberOfDataRecords;
 
+	recordRawBuffer = new char[vh.samplesPerRecord[0]*dataTypeSize];
+	recordDoubleBuffer = new double[vh.samplesPerRecord[0]];
+
 	// Load info from secondary files.
 	load();
 }
 
 GDF2::~GDF2()
 {
+	delete[] recordRawBuffer;
+	delete[] recordDoubleBuffer;
 	delete[] scale;
 
 	// Delete variable header.
@@ -230,13 +276,6 @@ GDF2::~GDF2()
 	delete[] vh.sensorInfo;
 }
 
-time_t GDF2::getStartDate() const
-{
-	double fractionOfDay = ldexp(static_cast<double>(fh.startDate[0]), -32);
-	double seconds = (fh.startDate[1] - 719529 + fractionOfDay)*24*60*60;
-	return static_cast<time_t>(round(seconds));
-}
-
 void GDF2::save()
 {
 }
@@ -251,120 +290,39 @@ void GDF2::readGdfEventTable(int numberOfEvents, int eventTableMode)
 }
 
 template<typename T>
-void GDF2::readDataLocal(vector<T>* data, int64_t firstSample, int64_t lastSample)
+void GDF2::readSignalFromFileFloatDouble(vector<T*> dataChannels, const uint64_t firstSample, const uint64_t lastSample)
 {
-	lock_guard<mutex> lock(fileMutex);
+	assert(firstSample <= lastSample && "Bad parameter order.");
+	assert(lastSample < getSamplesRecorded() && "Reading out of bounds.");
 
-#ifndef NDEBUG
-	int64_t originalFS = firstSample, originalLS = lastSample;
-	(void)originalFS;
-	(void)originalLS;
-#endif
-
-	if (lastSample < firstSample)
-	{
-		throw invalid_argument("lastSample must be greater than or equal to firstSample.");
-	}
-
-	if (lastSample - firstSample + 1 > static_cast<int64_t>(data->size()))
-	{
-		throw invalid_argument("The requested range cannot fit into data.");
-	}
-
-	// Special cases for when data before or after the file is requested.
-	if (firstSample < 0 || lastSample >= static_cast<int64_t>(samplesRecorded))
-	{
-		for (auto& e : *data)
-		{
-			e = 0;
-		}
-
-		// Exit early if there is nothing to read.
-		if (lastSample < 0 || firstSample >= static_cast<int64_t>(samplesRecorded))
-		{
-			return;
-		}
-	}
-
-	// Init variables needed later.
 	int samplesPerRecord = vh.samplesPerRecord[0];
-	int64_t rowLen = lastSample - firstSample + 1,
-			dataIndex = 0,
-			dataOffset, recordI, lastRecordI, n;
+	int recordChannelBytes = samplesPerRecord*dataTypeSize;
 
-	if (firstSample < 0)
+	unsigned int recordI = firstSample/samplesPerRecord;
+	seekFile(startOfData + recordI*recordChannelBytes*getChannelCount(), true);
+
+	int firstSampleToCopy = firstSample%samplesPerRecord;
+
+	for (; recordI <= lastSample/samplesPerRecord; ++recordI)
 	{
-		dataOffset = -firstSample;
-		firstSample = recordI = 0;
-	}
-	else
-	{
-		dataOffset = 0;
-		recordI = firstSample/samplesPerRecord;
-	}
+		int copyCount = min<int>(samplesPerRecord, lastSample - recordI*samplesPerRecord - firstSampleToCopy + 1);
 
-	if (lastSample >= static_cast<int64_t>(samplesRecorded))
-	{
-		lastSample = samplesRecorded - 1;
-	}
-
-	n = lastSample - firstSample + 1;
-	lastRecordI = lastSample/samplesPerRecord;
-
-	// Read data from the file.
-	for (; recordI <= lastRecordI; ++recordI)
-	{
-		vector<char>* record;
-
-		record = new vector<char>(samplesPerRecord*getChannelCount()*dataTypeSize);
-
-		seekFile(startOfData + recordI*samplesPerRecord*getChannelCount()*dataTypeSize, true);
-
-		file.read(record->data(), dataTypeSize*samplesPerRecord*getChannelCount());
-
-		if (isLittleEndian == false)
-		{
-			for (unsigned int i = 0; i < samplesPerRecord*getChannelCount(); ++i)
-			{
-				changeEndianness(record->data() + i*dataTypeSize, dataTypeSize);
-			}
-		}
-
-		int recordOffset = static_cast<int>((firstSample + dataIndex)%samplesPerRecord);
-		int samplesToRead = static_cast<int>(min<int64_t>(samplesPerRecord - recordOffset, n - dataIndex));
+		assert(firstSample + copyCount - 1 <= lastSample && "Make sure we don't write beyond the output buffer.");
+		assert(firstSampleToCopy + copyCount <= samplesPerRecord && "Make sure we don't acceed tmp buffer size.");
 
 		for (unsigned int channelI = 0; channelI < getChannelCount(); ++channelI)
 		{
-			for (int i = 0; i < samplesToRead; ++i)
-			{
-				// Copy a sample from the record.
-				double tmp;
-				char rawTmp[8];
+			readRecord(file, recordRawBuffer, recordDoubleBuffer, samplesPerRecord, dataTypeSize, convertSampleToDouble, isLittleEndian);
 
-				memcpy(rawTmp, record->data() + (channelI*samplesPerRecord + recordOffset + i)*dataTypeSize, dataTypeSize);
+			if (scale != nullptr)
+				calibrateSamples(recordDoubleBuffer, samplesPerRecord, vh.digitalMinimum[channelI], scale[channelI], vh.physicalMinimum[channelI]);
 
-				tmp = convertSampleToDouble(rawTmp);
+			for (int i = 0; i < copyCount; i++)
+				dataChannels[channelI][i] = recordDoubleBuffer[firstSampleToCopy + i];
 
-				// Calibration.
-				if (scale != nullptr)
-				{
-					tmp -= vh.digitalMinimum[channelI];
-					tmp /= scale[channelI];
-					tmp += vh.physicalMinimum[channelI];
-				}
-
-				size_t index = channelI*rowLen + dataOffset + dataIndex + i;
-#ifndef NDEBUG
-				(*data).at(index)
-#else
-				(*data)[index]
-#endif
-				= static_cast<T>(tmp);
-			}
+			dataChannels[channelI] += copyCount;
 		}
 
-		dataIndex += samplesToRead;
-
-		delete record;
+		firstSampleToCopy = 0;
 	}
 }

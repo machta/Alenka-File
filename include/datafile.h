@@ -40,9 +40,13 @@ public:
 	virtual uint64_t getSamplesRecorded() const = 0;
 
 	/**
-	 * @brief Returns the date of the start of recording.
+	 * @brief Returns the date and time of the start of recording.
+	 *
+	 * Some implementations depend on the time zone this is run,
+	 * so you can optionally specify the current time zone to adjust.
+	 * For example Prague, Czech Republic, is one hour ahead, so pass 1 to get UTC.
 	 */
-	virtual time_t getStartDate() const = 0;
+	virtual time_t getStartDate(int timeZone = 0) const = 0;
 
 	/**
 	 * @brief Saves the .mont file.
@@ -58,7 +62,7 @@ public:
 	 * @param firstSample The first sample to be loaded.
 	 * @param lastSample The last sample to be loaded.
 	 */
-	virtual void readData(std::vector<float>* data, int64_t firstSample, int64_t lastSample) = 0;
+	void readSignal(float* data, int64_t firstSample, int64_t lastSample);
 
 	/**
 	 * @brief Reads signal data specified by the sample range.
@@ -69,26 +73,13 @@ public:
 	 * @param firstSample The first sample to be loaded.
 	 * @param lastSample The last sample to be loaded.
 	 */
-	virtual void readData(std::vector<double>* data, int64_t firstSample, int64_t lastSample) = 0;
-
-protected:
-	/**
-	 * @brief Loads the info from the .mont file.
-	 * @return True if the .mont file was located.
-	 *
-	 * This method tries to load the necessary information from the .mont file.
-	 * If the file is not located false is returned. The extending class then
-	 * can load this information instead in its specific way.
-	 *
-	 * An empty montage is always created.
-	 */
-	virtual bool load();
+	void readSignal(double* data, int64_t firstSample, int64_t lastSample);
 
 	/**
 	 * @brief Tests endianness.
 	 * @return Returns true if this computer is little-endian, false otherwise.
 	 */
-	bool testLittleEndian() const
+	static bool testLittleEndian()
 	{
 		unsigned int number = 1;
 		char* bytes = reinterpret_cast<char*>(&number);
@@ -100,7 +91,7 @@ protected:
 	 * @param data [in,out]
 	 * @param size Size in bytes.
 	 */
-	void changeEndianness(char* data, int size) const
+	static void changeEndianness(char* data, int size)
 	{
 		for (int i = 0, sizeHalf = size/2; i < sizeHalf; ++i)
 		{
@@ -113,10 +104,27 @@ protected:
 	 * @param val [in,out]
 	 */
 	template<typename T>
-	void changeEndianness(T* val) const
+	static void changeEndianness(T* val)
 	{
 		changeEndianness(reinterpret_cast<char*>(val), sizeof(T));
 	}
+
+	virtual void readSignalFromFile(std::vector<float*> dataChannels, uint64_t firstSample, uint64_t lastSample) = 0;
+	virtual void readSignalFromFile(std::vector<double*> dataChannels, uint64_t firstSample, uint64_t lastSample) = 0;
+
+protected:
+
+	/**
+	 * @brief Loads the info from the .mont file.
+	 * @return True if the .mont file was located.
+	 *
+	 * This method tries to load the necessary information from the .mont file.
+	 * If the file is not located false is returned. The extending class then
+	 * can load this information instead in its specific way.
+	 *
+	 * An empty montage is always created.
+	 */
+	virtual bool load();
 
 private:
 	std::string filePath;

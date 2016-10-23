@@ -1,5 +1,6 @@
 #include "datafile.h"
 
+#include <cmath>
 #include <fstream>
 #include <mutex>
 
@@ -33,18 +34,24 @@ public:
 	{
 		return samplesRecorded;
 	}
-	virtual time_t getStartDate() const override;
+	virtual time_t getStartDate(int) const override
+	{
+		double fractionOfDay = ldexp(static_cast<double>(fh.startDate[0]), -32);
+		double seconds = (fh.startDate[1] - 719529 + fractionOfDay)*24*60*60;
+		return static_cast<time_t>(round(seconds));
+	}
 	virtual void save() override;
-	virtual void readData(std::vector<float>* data, int64_t firstSample, int64_t lastSample) override
-	{
-		readDataLocal(data, firstSample, lastSample);
-	}
-	virtual void readData(std::vector<double>* data, int64_t firstSample, int64_t lastSample) override
-	{
-		readDataLocal(data, firstSample, lastSample);
-	}
 
 protected:
+	virtual void readSignalFromFile(std::vector<float*> dataChannels, uint64_t firstSample, uint64_t lastSample) override
+	{
+		readSignalFromFileFloatDouble(dataChannels, firstSample, lastSample);
+	}
+	virtual void readSignalFromFile(std::vector<double*> dataChannels, uint64_t firstSample, uint64_t lastSample) override
+	{
+		readSignalFromFileFloatDouble(dataChannels, firstSample, lastSample);
+	}
+
 	/**
 	 * @brief Creates a default montage with EventTable and TrackTable created
 	 * from the information retrieved from the GDF file.
@@ -53,6 +60,9 @@ protected:
 	virtual bool load() override;
 
 private:
+	char* recordRawBuffer;
+	double* recordDoubleBuffer;
+
 	std::mutex fileMutex;
 	std::fstream file;
 	double samplingFrequency;
@@ -185,7 +195,7 @@ private:
 	}
 
 	template<typename T>
-	void readDataLocal(std::vector<T>* data, int64_t firstSample, int64_t lastSample);
+	void readSignalFromFileFloatDouble(std::vector<T*> dataChannels, const uint64_t firstSample, const uint64_t lastSample);
 	void readGdfEventTable(int numberOfEvents, int eventTableMode);
 };
 

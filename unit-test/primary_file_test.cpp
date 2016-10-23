@@ -1,17 +1,63 @@
 #include "gtest/gtest.h"
 
 #include "gdf2.h"
+#include "edf.h"
 
 #include <string>
-#include <vector>
 #include <fstream>
 
 using namespace std;
 
+namespace
+{
+
+template <class T>
+void fillVector(vector<T>& v, T val)
+{
+	for (auto& e : v)
+		e = val;
+}
+
+template <class T, class U>
+void compareMatrix(T* arr, U* sol, int rows, int cols, int arrRowLen, int solRowLen, double* relErr, double* absErr)
+{
+	double rel = 0;
+	double abs = 0;
+
+	for (int j = 0; j < rows; j++)
+	{
+		for (int i = 0; i < cols; i++)
+		{
+			double diff = fabs(arr[i] - sol[i]);
+			abs = max<double>(abs, diff);
+			rel = max<double>(rel, fabs(diff/sol[i]));
+		}
+
+		arr += arrRowLen;
+		sol += solRowLen;
+	}
+
+	*relErr = rel;
+	*absErr = abs;
+}
+
+template <class T, class U>
+void compareMatrix(T* arr, U* sol, int rows, int cols, double* relErr, double* absErr)
+{
+	compareMatrix(arr, sol, rows, cols, cols, cols, relErr, absErr);
+}
+
+const double MAX_REL_ERR_DOUBLE = 0.0001;
+const double MAX_REL_ERR_FLOAT = 0.0001;
+const double MAX_ABS_ERR_DOUBLE = 0.000001;
+const double MAX_ABS_ERR_FLOAT = 0.01;
+
+}
+
 class testFile
 {
 	bool hasValues = false;
-	vector<vector<double>> values;
+	vector<double> values;
 
 public:
 	string path;
@@ -30,23 +76,29 @@ public:
 		return new GDF2(path);
 	}
 
-	const vector<vector<double>>& getValues()
+	DataFile* makeEDF()
+	{
+		return new EDF(path);
+	}
+
+	const vector<double>& getValues()
 	{
 		if (hasValues == false)
 		{
 			hasValues = true;
-			fstream valuesFile(path + "_values.dat");
+
+			fstream valuesFile;
+			valuesFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+			valuesFile.open(path + "_values.dat");
 
 			for (unsigned int i = 0; i < channelCount; i++)
 			{
-				vector<double> channel;
 				for (unsigned int j = 0; j < samplesRecorded; j++)
 				{
 					double sample;
 					valuesFile >> sample;
-					channel.push_back(sample);
+					values.push_back(sample);
 				}
-				values.push_back(channel);
 			}
 		}
 
@@ -62,77 +114,69 @@ public:
 
 	void outOfBoundsTest(DataFile* file)
 	{
-		int nNormal = 149;
-		int nZero = 229;
+		//int nNormal = 149;
+		//int nZero = 229;
+		int nNormal = 10;
+		int nZero = 20;
 
-		vector<double> a;
-		a.insert(a.begin(), (nNormal + nZero)*file->getChannelCount(), 0);
+		vector<double> a((nNormal + nZero)*file->getChannelCount());
+		vector<double> b(nNormal*file->getChannelCount());
+		vector<double> zero(nZero*file->getChannelCount(), 0);
 
-		vector<double> b;
-		b.insert(b.begin(), nNormal*file->getChannelCount(), 0);
+		fillVector(a, static_cast<double>(0xAAAAAAAAAAAAAAAA));
+		fillVector(b, static_cast<double>(0xBBBBBBBBBBBBBBBB));
 
-		file->readData(&a, -nZero, nNormal - 1);
-		file->readData(&b, 0, nNormal - 1);
+		file->readSignal(a.data(), -nZero, nNormal - 1);
+		file->readSignal(b.data(), 0, nNormal - 1);
 
-		for (int i = 0; i < nZero; ++i)
-		{
-			for (unsigned int j = 0; j < file->getChannelCount(); ++j)
-			{
-				EXPECT_DOUBLE_EQ(a[(nNormal + nZero)*j + i], 0);
-			}
-		}
+		double relErr, absErr;
 
-		for (int i = 0; i < nNormal; ++i)
-		{
-			for (unsigned int j = 0; j < file->getChannelCount(); ++j)
-			{
-				EXPECT_DOUBLE_EQ(a[(nNormal + nZero)*j + nZero + i], b[nNormal*j + i]);
-			}
-		}
+		compareMatrix(a.data(), zero.data(), file->getChannelCount(), nZero, nNormal + nZero, nZero, &relErr, &absErr);
+		EXPECT_DOUBLE_EQ(relErr, 0);
+		EXPECT_DOUBLE_EQ(absErr, 0);
+
+		compareMatrix(a.data() + nZero, b.data(), file->getChannelCount(), nNormal, nNormal + nZero, nNormal, &relErr, &absErr);
+		EXPECT_DOUBLE_EQ(relErr, 0);
+		EXPECT_DOUBLE_EQ(absErr, 0);
+
+		fillVector(a, static_cast<double>(0xAAAAAAAAAAAAAAAA));
+		fillVector(b, static_cast<double>(0xBBBBBBBBBBBBBBBB));
 
 		int last = file->getSamplesRecorded() - 1;
-		file->readData(&a, last - nNormal + 1, last + nZero);
-		file->readData(&b, last - nNormal + 1, last);
+		file->readSignal(a.data(), last - nNormal + 1, last + nZero);
+		file->readSignal(b.data(), last - nNormal + 1, last);
 
-		for (int i = 0; i < nZero; ++i)
-		{
-			for (unsigned int j = 0; j < file->getChannelCount(); ++j)
-			{
-				EXPECT_DOUBLE_EQ(a[(nNormal + nZero)*j + nNormal + i], 0);
-			}
-		}
+		compareMatrix(a.data() + nNormal, zero.data(), file->getChannelCount(), nZero, nNormal + nZero, nZero, &relErr, &absErr);
+		EXPECT_DOUBLE_EQ(relErr, 0);
+		EXPECT_DOUBLE_EQ(absErr, 0);
 
-		for (int i = 0; i < nNormal; ++i)
-		{
-			for (unsigned int j = 0; j < file->getChannelCount(); ++j)
-			{
-				EXPECT_DOUBLE_EQ(a[(nNormal + nZero)*j + i], b[nNormal*j + i]);
-			}
-		}
+		compareMatrix(a.data(), b.data(), file->getChannelCount(), nNormal, nNormal + nZero, nNormal, &relErr, &absErr);
+		EXPECT_DOUBLE_EQ(relErr, 0);
+		EXPECT_DOUBLE_EQ(absErr, 0);
 	}
 
-	void dataTest(DataFile* file)
+	void dataTest(DataFile* file, double maxRelErrDouble = MAX_REL_ERR_DOUBLE, double maxRelErrFloat = MAX_REL_ERR_FLOAT,
+				  double maxAbsErrDouble = MAX_ABS_ERR_DOUBLE, double maxAbsErrFloat = MAX_ABS_ERR_FLOAT)
 	{
 		int n = channelCount*samplesRecorded;
 
 		vector<double> dataD;
 		dataD.insert(dataD.begin(), n, 0);
-		file->readData(&dataD, 0, samplesRecorded - 1);
+		file->readSignal(dataD.data(), 0, samplesRecorded - 1);
 
 		vector<float> dataF;
 		dataF.insert(dataF.begin(), n, 0);
-		file->readData(&dataF, 0, samplesRecorded - 1);
+		file->readSignal(dataF.data(), 0, samplesRecorded - 1);
 
-		for (unsigned int i = 0; i < channelCount; i++)
-		{
-			for (unsigned int j = 0; j < samplesRecorded; j++)
-			{
-				double value = getValues()[i][j];
+		double relErr, absErr;
 
-				EXPECT_NEAR(value, dataD.at(i*samplesRecorded + j), 0.000001) << "Double test failed.";
-				EXPECT_NEAR(value, dataF.at(i*samplesRecorded + j), 0.01) << "Float test failed.";
-			}
-		}
+		compareMatrix(dataD.data(), getValues().data(), channelCount, samplesRecorded, &relErr, &absErr);
+		EXPECT_LT(relErr, maxRelErrDouble);
+		EXPECT_LT(absErr, maxAbsErrDouble);
+
+		compareMatrix(dataF.data(), getValues().data(), channelCount, samplesRecorded, &relErr, &absErr);
+		EXPECT_LT(relErr, maxRelErrFloat);
+		EXPECT_LT(absErr, maxAbsErrFloat);
 	}
 };
 
@@ -141,7 +185,8 @@ class primary_file_test : public ::testing::Test
 protected:
 	primary_file_test() :
 		gdf00(path + "gdf/gdf00", 200, 19, 364000),
-		gdf01(path + "gdf/gdf01", 50, 1, 2050)
+		gdf01(path + "gdf/gdf01", 50, 1, 2050),
+		edf00(path + "edf/edf00", 200, 37, 363620)
 	{}
 
 	virtual ~primary_file_test()
@@ -161,7 +206,7 @@ protected:
 		data.insert(data.begin(), 100000, 0);
 
 		ASSERT_NO_THROW(file.reset(new T(path + "gdf/gdf00")));
-		EXPECT_THROW(file->readData(&data, 100, 50), invalid_argument);
+		EXPECT_THROW(file->readSignal(data.data(), 100, 50), invalid_argument);
 	}
 
 	template<class T>
@@ -179,16 +224,22 @@ protected:
 	string path = "unit-test/data/";
 
 	testFile gdf00, gdf01;
+	testFile edf00;
 };
 
-// Tests commot for all types.
+// Tests common to all file types.
 TEST_F(primary_file_test, outOfBounds)
 {
 	gdf00.outOfBoundsTest(unique_ptr<DataFile>(gdf00.makeGDF2()).get());
 	gdf01.outOfBoundsTest(unique_ptr<DataFile>(gdf01.makeGDF2()).get());
+
+	edf00.outOfBoundsTest(unique_ptr<DataFile>(edf00.makeEDF()).get());
 }
 
-// Tests of GDF files.
+// TODO: Add all kinds of crazy tests that read samples and compare them to data read from the whole file. Like read only one sample long block.
+// TODO: Test whether readSignal modifies immediately before and after the bufer size -- whether it writes out of bounds.
+
+// Tests of my GDF implementation.
 TEST_F(primary_file_test, GDF2_exceptions)
 {
 	gdfExceptionsTest<GDF2>();
@@ -205,14 +256,45 @@ TEST_F(primary_file_test, GDF2_metaInfo)
 	gdf01.metaInfoTest(unique_ptr<DataFile>(gdf01.makeGDF2()).get());
 }
 
-TEST_F(primary_file_test, GDF2_data_t00)
+TEST_F(primary_file_test, GDF2_data_00) // TODO: generate new values files with higher precision
 {
 	gdf00.dataTest(unique_ptr<DataFile>(gdf00.makeGDF2()).get());
 }
 
-TEST_F(primary_file_test, GDF2_data_t01)
+TEST_F(primary_file_test, GDF2_data_01)
 {
 	gdf01.dataTest(unique_ptr<DataFile>(gdf01.makeGDF2()).get());
 }
 
-// Tests of EDF files.
+// Tests of EDFlib.
+TEST_F(primary_file_test, EDF_exceptions)
+{
+	unique_ptr<DataFile> file;
+
+	vector<double> data;
+	data.insert(data.begin(), 100000, 0);
+
+	ASSERT_NO_THROW(file.reset(new EDF(path + "edf/edf00", "edf")));
+	EXPECT_THROW(file->readSignal(data.data(), 100, 50), invalid_argument);
+}
+
+TEST_F(primary_file_test, EDF_startTime)
+{
+	unique_ptr<DataFile> file;
+
+	ASSERT_NO_THROW(file.reset(new EDF(path + "edf/edf00")));
+
+	time_t time = file->getStartDate();
+	time_t seconds = 1126779522; // Seconds between 1970 and Thu, 15 Sep 2005 10:18:42 GMT
+	EXPECT_LE(time - seconds, 60*60*24) << "Start time is within 24 hours.";
+}
+
+TEST_F(primary_file_test, EDF_metaInfo)
+{
+	edf00.metaInfoTest(unique_ptr<DataFile>(edf00.makeEDF()).get());
+}
+
+TEST_F(primary_file_test, EDF_data_00)
+{
+	edf00.dataTest(unique_ptr<DataFile>(edf00.makeEDF()).get(), MAX_REL_ERR_DOUBLE/10000, MAX_REL_ERR_FLOAT/1000, MAX_ABS_ERR_DOUBLE/100000, MAX_ABS_ERR_FLOAT/100);
+}

@@ -2,6 +2,7 @@
 
 #include "gdf2.h"
 #include "edf.h"
+#include "libgdf.h"
 
 #include <string>
 #include <fstream>
@@ -79,6 +80,11 @@ public:
 	DataFile* makeEDF()
 	{
 		return new EDF(path);
+	}
+
+	DataFile* makeLibGDF()
+	{
+		return new LibGDF(path);
 	}
 
 	const vector<double>& getValues()
@@ -233,6 +239,9 @@ TEST_F(primary_file_test, outOfBounds)
 	gdf00.outOfBoundsTest(unique_ptr<DataFile>(gdf00.makeGDF2()).get());
 	gdf01.outOfBoundsTest(unique_ptr<DataFile>(gdf01.makeGDF2()).get());
 
+	gdf00.outOfBoundsTest(unique_ptr<DataFile>(gdf00.makeLibGDF()).get());
+	gdf01.outOfBoundsTest(unique_ptr<DataFile>(gdf01.makeLibGDF()).get());
+	
 	edf00.outOfBoundsTest(unique_ptr<DataFile>(edf00.makeEDF()).get());
 }
 
@@ -264,6 +273,34 @@ TEST_F(primary_file_test, GDF2_data_00) // TODO: generate new values files with 
 TEST_F(primary_file_test, GDF2_data_01)
 {
 	gdf01.dataTest(unique_ptr<DataFile>(gdf01.makeGDF2()).get());
+}
+
+// Tests of LibGDF.
+TEST_F(primary_file_test, LibGDF_exceptions)
+{
+	FAIL();
+	gdfExceptionsTest<LibGDF>();
+}
+
+TEST_F(primary_file_test, LibGDF_startTime)
+{
+	gdfStartTimeTest<LibGDF>();
+}
+
+TEST_F(primary_file_test, LibGDF_metaInfo)
+{
+	gdf00.metaInfoTest(unique_ptr<DataFile>(gdf00.makeLibGDF()).get());
+	gdf01.metaInfoTest(unique_ptr<DataFile>(gdf01.makeLibGDF()).get());
+}
+
+TEST_F(primary_file_test, LibGDF_data_t00)
+{
+	gdf00.dataTest(unique_ptr<DataFile>(gdf00.makeLibGDF()).get());
+}
+
+TEST_F(primary_file_test, LibGDF_data_t01)
+{
+	gdf01.dataTest(unique_ptr<DataFile>(gdf01.makeLibGDF()).get());
 }
 
 // Tests of EDFlib.

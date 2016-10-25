@@ -10,8 +10,12 @@ set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-Wall -pedantic")
 add_subdirectory(EDFlib)
 set(INC ${INC} EDFlib)
 
+set(BUILD_SHARED_LIBS false)
+add_subdirectory(libgdf)
+set(INC ${INC} libgdf/libgdf/include)
+
 # If you include this library into your project, you will want to link to these libraries.
-set(LIBS_TO_LINK alenka-file EDF)
+set(LIBS_TO_LINK alenka-file EDF GDF)
 
 # Tests.
 if(BUILD_TEST)

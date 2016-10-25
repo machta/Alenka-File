@@ -37,13 +37,13 @@ public:
 	}
 	virtual time_t getStartDate(int timeZone = 0) const override;
 	virtual void save() override;
-	virtual void readSignalFromFile(std::vector<float*> data, uint64_t firstSample, uint64_t lastSample) override
+	virtual void readSignalFromFile(std::vector<float*> dataChannels, uint64_t firstSample, uint64_t lastSample) override
 	{
-		//readDataLocal(data, firstSample, lastSample);
+		readSignalFromFileFloatDouble(dataChannels, firstSample, lastSample);
 	}
-	virtual void readSignalFromFile(std::vector<double*> data, uint64_t firstSample, uint64_t lastSample) override
+	virtual void readSignalFromFile(std::vector<double*> dataChannels, uint64_t firstSample, uint64_t lastSample) override
 	{
-		//readDataLocal(data, firstSample, lastSample);
+		readSignalFromFileFloatDouble(dataChannels, firstSample, lastSample);
 	}
 
 protected:
@@ -58,6 +58,11 @@ private:
 	uint16_t numberOfChannels;
 	uint64_t samplesRecorded;
 	gdf::Reader* gdfReader;
+	int readChunk;
+	double* readChunkBuffer;
+
+	template<typename T>
+	void readSignalFromFileFloatDouble(std::vector<T*> dataChannels, uint64_t firstSample, uint64_t lastSample);
 };
 
 #endif // LIBGDF_H

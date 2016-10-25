@@ -11,6 +11,8 @@ add_subdirectory(EDFlib)
 set(INC ${INC} EDFlib)
 
 set(BUILD_SHARED_LIBS false)
+# This macro turns on my changes in the library that handle a newer version of the GDF format.
+add_definitions(-DALLOW_GDF_V_251)
 add_subdirectory(libgdf)
 set(INC ${INC} libgdf/libgdf/include)
 

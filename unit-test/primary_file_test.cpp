@@ -4,8 +4,9 @@
 #include "edf.h"
 #include "libgdf.h"
 
-#include <string>
 #include <fstream>
+#include <string>
+#include <memory>
 
 using namespace std;
 

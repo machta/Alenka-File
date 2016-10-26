@@ -9,18 +9,16 @@ class Reader;
 }
 
 /**
- * @brief A class implementing the GDF v2 file type.
- *
- * All methods accessing the information stored in the file are thread-safe.
+ * @brief A class implementing the GDF file type.
  */
 class LibGDF : public DataFile
 {
 public:
 	/**
 	 * @brief
-	 * @param filePath The file path of the data file without the extension.
+	 * @param filePath The file path of the primary data file.
 	 */
-	LibGDF(const std::string& filePath/*, bool uncalibrated = false*/);
+	LibGDF(const std::string& filePath);
 	virtual ~LibGDF();
 
 	virtual double getSamplingFrequency() const override
@@ -47,10 +45,6 @@ public:
 	}
 
 protected:
-	/**
-	 * @brief
-	 * @return
-	 */
 	virtual bool load() override;
 
 private:

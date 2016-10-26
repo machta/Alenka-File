@@ -47,13 +47,13 @@ void calibrateSamples(double* samples, int n, double digitalMinimum, double scal
 	}
 }
 
-}
+} // namespace
 
 GDF2::GDF2(const string& filePath, bool uncalibrated) : DataFile(filePath)
 {
 	isLittleEndian = testLittleEndian();
 
-	file.open(filePath + ".gdf");
+	file.open(filePath);
 	assert(file.is_open() && "File GDF2 was not successfully opened.");
 
 	// Load fixed header.
@@ -294,6 +294,7 @@ void GDF2::readSignalFromFileFloatDouble(vector<T*> dataChannels, const uint64_t
 {
 	assert(firstSample <= lastSample && "Bad parameter order.");
 	assert(lastSample < getSamplesRecorded() && "Reading out of bounds.");
+	assert(dataChannels.size() == getChannelCount() && "Make sure dataChannels has the same number of channels as the file.");
 
 	int samplesPerRecord = vh.samplesPerRecord[0];
 	int recordChannelBytes = samplesPerRecord*dataTypeSize;

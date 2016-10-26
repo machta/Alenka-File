@@ -7,17 +7,19 @@
 #ifndef GDF2_H
 #define GDF2_H
 
+// ??? * All methods accessing the information stored in the file are thread-safe.
+
 /**
- * @brief A class implementing the GDF v2 file type.
+ * @brief A class implementing the GDF v2.51 file type.
  *
- * All methods accessing the information stored in the file are thread-safe.
+ * This is my own implementation that doesn't depend on anything but the standard library.
  */
 class GDF2 : public DataFile
 {
 public:
 	/**
 	 * @brief GDF2 constructor.
-	 * @param filePath The file path of the data file without the extension.
+	 * @param filePath The file path of the primary data file.
 	 */
 	GDF2(const std::string& filePath, bool uncalibrated = false);
 	virtual ~GDF2();

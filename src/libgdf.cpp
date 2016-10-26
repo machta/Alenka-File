@@ -12,7 +12,7 @@ const int MAX_READ_CHUNK = 2*1000*1000;
 LibGDF::LibGDF(const string& filePath) : DataFile(filePath)
 {
 	gdfReader = new Reader();
-	gdfReader->open(filePath + ".gdf");
+	gdfReader->open(filePath);
 
 	samplesRecorded = gdfReader->getSignalHeader_readonly(0).get_samples_per_record()*gdfReader->getMainHeader_readonly().get_num_datarecords();
 	samplingFrequency = gdfReader->getSignalHeader_readonly(0).get_samplerate();
@@ -59,7 +59,7 @@ void LibGDF::readSignalFromFileFloatDouble(std::vector<T*> dataChannels, uint64_
 {
 	assert(firstSample <= lastSample && "Bad parameter order.");
 	assert(lastSample < getSamplesRecorded() && "Reading out of bounds.");
-
+	assert(dataChannels.size() == getChannelCount() && "Make sure dataChannels has the same number of channels as the file.");
 	assert(readChunk > 0);
 
 	uint64_t nextBoundary = (firstSample + readChunk - 1/readChunk);

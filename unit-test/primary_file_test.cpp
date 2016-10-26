@@ -75,17 +75,17 @@ public:
 
 	DataFile* makeGDF2()
 	{
-		return new GDF2(path);
+		return new GDF2(path + ".gdf");
 	}
 
 	DataFile* makeEDF()
 	{
-		return new EDF(path);
+		return new EDF(path + ".edf");
 	}
 
 	DataFile* makeLibGDF()
 	{
-		return new LibGDF(path);
+		return new LibGDF(path + ".gdf");
 	}
 
 	const vector<double>& getValues()
@@ -204,7 +204,7 @@ protected:
 	{
 		unique_ptr<DataFile> file;
 
-		ASSERT_NO_THROW(file.reset(new T(path + "gdf/startTime")));
+		ASSERT_NO_THROW(file.reset(new T(path + "gdf/startTime.gdf")));
 
 		time_t time = file->getStartDate();
 		time_t seconds = 1231276659; // Seconds between 1970 and Tue Jan  6 21:17:39 2009
@@ -235,17 +235,17 @@ TEST_F(primary_file_test, outOfBounds)
 // Tests of my GDF implementation.
 TEST_F(primary_file_test, GDF2_exceptions)
 {
-	EXPECT_THROW(GDF2 file(path + "gdf/empty"), runtime_error);
-	EXPECT_THROW(GDF2 file(path + "gdf/headerOnly"), runtime_error);
-	EXPECT_THROW(GDF2 file(path + "gdf/badType"), runtime_error);
-	EXPECT_THROW(GDF2 file(path + "gdf/badFile"), runtime_error);
+	EXPECT_THROW(GDF2 file(path + "gdf/empty.gdf"), runtime_error);
+	EXPECT_THROW(GDF2 file(path + "gdf/headerOnly.gdf"), runtime_error);
+	EXPECT_THROW(GDF2 file(path + "gdf/badType.gdf"), runtime_error);
+	EXPECT_THROW(GDF2 file(path + "gdf/badFile.gdf"), runtime_error);
 
 	unique_ptr<DataFile> file;
 
 	vector<double> data;
 	data.insert(data.begin(), 100000, 0);
 
-	ASSERT_NO_THROW(file.reset(new GDF2(path + "gdf/gdf00")));
+	ASSERT_NO_THROW(file.reset(new GDF2(path + "gdf/gdf00.gdf")));
 	EXPECT_THROW(file->readSignal(data.data(), 100, 50), invalid_argument);
 }
 
@@ -273,17 +273,17 @@ TEST_F(primary_file_test, GDF2_data_01)
 // Tests of LibGDF.
 TEST_F(primary_file_test, LibGDF_exceptions)
 {
-	//EXPECT_THROW(LibGDF file(path + "gdf/empty"), runtime_error);
-	//EXPECT_THROW(LibGDF file(path + "gdf/headerOnly"), runtime_error);
-	EXPECT_ANY_THROW(LibGDF file(path + "gdf/badType"));
-	EXPECT_ANY_THROW(LibGDF file(path + "gdf/badFile"));
+	//EXPECT_THROW(LibGDF file(path + "gdf/empty.gdf"), runtime_error);
+	//EXPECT_THROW(LibGDF file(path + "gdf/headerOnly.gdf"), runtime_error);
+	EXPECT_ANY_THROW(LibGDF file(path + "gdf/badType.gdf"));
+	EXPECT_ANY_THROW(LibGDF file(path + "gdf/badFile.gdf"));
 
 	unique_ptr<DataFile> file;
 
 	vector<double> data;
 	data.insert(data.begin(), 100000, 0);
 
-	ASSERT_NO_THROW(file.reset(new LibGDF(path + "gdf/gdf00")));
+	ASSERT_NO_THROW(file.reset(new LibGDF(path + "gdf/gdf00.gdf")));
 	EXPECT_THROW(file->readSignal(data.data(), 100, 50), invalid_argument);
 }
 
@@ -316,7 +316,7 @@ TEST_F(primary_file_test, EDF_exceptions)
 	vector<double> data;
 	data.insert(data.begin(), 100000, 0);
 
-	ASSERT_NO_THROW(file.reset(new EDF(path + "edf/edf00", "edf")));
+	ASSERT_NO_THROW(file.reset(new EDF(path + "edf/edf00.edf")));
 	EXPECT_THROW(file->readSignal(data.data(), 100, 50), invalid_argument);
 }
 
@@ -324,7 +324,7 @@ TEST_F(primary_file_test, EDF_startTime)
 {
 	unique_ptr<DataFile> file;
 
-	ASSERT_NO_THROW(file.reset(new EDF(path + "edf/edf00")));
+	ASSERT_NO_THROW(file.reset(new EDF(path + "edf/edf00.edf")));
 
 	time_t time = file->getStartDate();
 	time_t seconds = 1126779522; // Seconds between 1970 and Thu, 15 Sep 2005 10:18:42 GMT

@@ -8,20 +8,17 @@ class edf_hdr_struct;
 /**
  * @brief A class implementing the EDF+ and BDF+ types.
  *
- * There is a limit on the channel count (512) dueto the limitations
- * of theEDFlib library.
- *
- * It is assumed that all channels have the same sampling frequency and
- * the same length.
+ * There is a limit on the channel count (512) due to the limitations
+ * of the EDFlib library.
  */
 class EDF : public DataFile
 {
 public:
 	/**
 	 * @brief
-	 * @param filePath The file path of the data file without the extension.
+	 * @param filePath The file path of the primary data file.
 	 */
-	EDF(const std::string& filePath, const std::string& type = "edf");
+	EDF(const std::string& filePath);
 	virtual ~EDF();
 
 	virtual double getSamplingFrequency() const override
@@ -49,10 +46,6 @@ protected:
 		readSignalFromFileFloatDouble(dataChannels, firstSample, lastSample);
 	}
 
-	/**
-	 * @brief
-	 * @return
-	 */
 	virtual bool load() override;
 
 private:

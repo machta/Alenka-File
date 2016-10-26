@@ -11,13 +11,11 @@ const int MIN_READ_CHUNK = 200;
 const int OPT_READ_CHUNK = 2*1000;
 const int MAX_READ_CHUNK = 2*1000*1000;
 
-EDF::EDF(const string& filePath, const string& type) : DataFile(filePath)
+EDF::EDF(const string& filePath) : DataFile(filePath)
 {
 	edfhdr = new edf_hdr_struct;
 
-	string fp = filePath + "." + type;
-
-	int err = edfopen_file_readonly(fp.c_str(), edfhdr, EDFLIB_DO_NOT_READ_ANNOTATIONS);
+	int err = edfopen_file_readonly(filePath.c_str(), edfhdr, EDFLIB_DO_NOT_READ_ANNOTATIONS);
 	assert(err == 0 && "File EDF was not successfully opened."); (void)err;
 
 	samplesRecorded = edfhdr->signalparam[0].smp_in_file;
@@ -76,6 +74,7 @@ void EDF::readSignalFromFileFloatDouble(std::vector<T*> dataChannels, uint64_t f
 {
 	assert(firstSample <= lastSample && "Bad parameter order.");
 	assert(lastSample < getSamplesRecorded() && "Reading out of bounds.");
+	assert(dataChannels.size() == getChannelCount() && "Make sure dataChannels has the same number of channels as the file.");
 
 	int handle = edfhdr->handle;
 	long long err; (void)err;

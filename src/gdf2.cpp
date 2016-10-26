@@ -247,9 +247,6 @@ case a_:\
 
 	recordRawBuffer = new char[vh.samplesPerRecord[0]*dataTypeSize];
 	recordDoubleBuffer = new double[vh.samplesPerRecord[0]];
-
-	// Load info from secondary files.
-	load();
 }
 
 GDF2::~GDF2()
@@ -276,12 +273,17 @@ GDF2::~GDF2()
 	delete[] vh.sensorInfo;
 }
 
-void GDF2::save()
+void GDF2::save(pugi::xml_document* const infoFile)
 {
+	DataFile::save(infoFile);
 }
 
-bool GDF2::load()
+bool GDF2::load(pugi::xml_document* infoFile)
 {
+if (DataFile::load(infoFile) == false)
+	{
+	}
+
 	return true;
 }
 

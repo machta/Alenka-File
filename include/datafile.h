@@ -8,6 +8,11 @@
 // TODO: add a public interface for access to the headers
 // TODO: upgrade some of the asserts to exceptions
 
+namespace pugi
+{
+class xml_document;
+}
+
 /**
  * @brief An abstract base class of the data files.
  *
@@ -60,8 +65,23 @@ public:
 
 	/**
 	 * @brief Saves the .info file.
+	 *
+	 * @param infoFile [out]
 	 */
-	virtual void save();
+	virtual void save(pugi::xml_document* const infoFile);
+
+	/**
+	 * @brief Loads the information from the .info file.
+	 * @return True if the .info file was located.
+	 *
+	 * This method tries to load the necessary information from the .info file.
+	 * If the file is not located, false is returned. The extending class can then
+	 * load this information instead from the primary file.
+	 *
+	 * An empty montage is always created.???
+	 * @param infoFile [in]
+	 */
+	virtual bool load(pugi::xml_document* infoFile);
 
 	/**
 	 * @brief Reads signal data specified by the sample range.
@@ -129,20 +149,6 @@ public:
 	{
 		changeEndianness(reinterpret_cast<char*>(val), sizeof(T));
 	}
-
-protected:
-
-	/**
-	 * @brief Loads the information from the .info file.
-	 * @return True if the .info file was located.
-	 *
-	 * This method tries to load the necessary information from the .info file.
-	 * If the file is not located, false is returned. The extending class can then
-	 * load this information instead from the primary file.
-	 *
-	 * An empty montage is always created.???
-	 */
-	virtual bool load();
 
 private:
 	std::string filePath;

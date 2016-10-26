@@ -42,9 +42,8 @@ public:
 		double seconds = (fh.startDate[1] - 719529 + fractionOfDay)*24*60*60;
 		return static_cast<time_t>(round(seconds));
 	}
-	virtual void save() override;
-
-protected:
+	virtual void save(pugi::xml_document* const infoFile) override;
+	virtual bool load(pugi::xml_document* infoFile) override;
 	virtual void readSignalFromFile(std::vector<float*> dataChannels, uint64_t firstSample, uint64_t lastSample) override
 	{
 		readSignalFromFileFloatDouble(dataChannels, firstSample, lastSample);
@@ -53,13 +52,6 @@ protected:
 	{
 		readSignalFromFileFloatDouble(dataChannels, firstSample, lastSample);
 	}
-
-	/**
-	 * @brief Creates a default montage with EventTable and TrackTable created
-	 * from the information retrieved from the GDF file.
-	 * @return True if the loading finished successfully.
-	 */
-	virtual bool load() override;
 
 private:
 	char* recordRawBuffer;

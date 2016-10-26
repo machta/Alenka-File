@@ -35,3 +35,4 @@ unit-test/googletest
 
 libgdf
 EDFlib
+pugixml

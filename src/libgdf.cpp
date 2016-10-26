@@ -44,13 +44,17 @@ time_t LibGDF::getStartDate(int timeZone) const
 	return static_cast<time_t>(round(seconds));
 }
 
-void LibGDF::save()
+void LibGDF::save(pugi::xml_document* const infoFile)
 {
-
+	DataFile::save(infoFile);
 }
 
-bool LibGDF::load()
+bool LibGDF::load(pugi::xml_document* infoFile)
 {
+	if (DataFile::load(infoFile) == false)
+	{
+	}
+
 	return true;
 }
 

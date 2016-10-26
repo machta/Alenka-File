@@ -1,11 +1,14 @@
 #include "datafile.h"
 
+#include "pugixml.hpp"
+
 #include <algorithm>
 #include <cassert>
 #include <stdexcept>
 #include <type_traits>
 
 using namespace std;
+using namespace pugi;
 
 namespace
 {
@@ -66,8 +69,19 @@ DataFile::~DataFile()
 {
 }
 
-void DataFile::save()
+void DataFile::save(xml_document* const infoFile)
 {
+	string fp = filePath + ".info";
+	bool res = infoFile->save_file(fp.c_str());
+	assert(res && "Assure the .info file was written successfully.");
+}
+
+bool DataFile::load(xml_document* infoFile)
+{
+	string fp = filePath + ".info";
+	xml_parse_result res = infoFile->load_file(fp.c_str());
+
+	return res;
 }
 
 void DataFile::readSignal(float* data, int64_t firstSample, int64_t lastSample)
@@ -78,9 +92,4 @@ void DataFile::readSignal(float* data, int64_t firstSample, int64_t lastSample)
 void DataFile::readSignal(double* data, int64_t firstSample, int64_t lastSample)
 {
 	readSignalFloatDouble(this, data, firstSample, lastSample);
-}
-
-bool DataFile::load()
-{
-	return true;
 }

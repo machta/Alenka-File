@@ -71,14 +71,14 @@ void LibGDF::readSignalFromFileFloatDouble(std::vector<T*> dataChannels, uint64_
 	while (firstSample <= lastSample)
 	{
 		uint64_t last = min(nextBoundary, lastSample + 1);
-		int n = last - firstSample;
+		int n = static_cast<int>(last - firstSample);
 
-		for (unsigned int i = 0; i < getChannelCount(); i++)
+		for (uint16 i = 0; i < getChannelCount(); i++)
 		{
 			gdfReader->getSignal(i, readChunkBuffer, firstSample, last);
 
 			for (int j = 0; j < n; j++)
-				dataChannels[i][j] = readChunkBuffer[j];
+				dataChannels[i][j] = static_cast<T>(readChunkBuffer[j]);
 
 			dataChannels[i] += n;
 		}

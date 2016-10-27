@@ -5,12 +5,6 @@ project(Alenka-File)
 option(BUILD_TEST "Builds unit tests." OFF)
 set(CMAKE_CXX_STANDARD 11)
 
-if (MSVC)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
-elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
-endif()
-
 # First build all the library dependencies.
 add_subdirectory(EDFlib)
 set(INC ${INC} EDFlib)
@@ -29,6 +23,12 @@ set(INC ${INC} pugixml/src)
 set(LIBS_TO_LINK alenka-file EDF GDF pugixml)
 
 # The library.
+if (MSVC)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
+elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wconversion -pedantic")
+endif()
+
 include_directories(include ${INC} ${BOOST_ROOT})
 
 if(BUILD_TEST)

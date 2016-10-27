@@ -47,7 +47,7 @@ public:
 
 private:
 	double samplingFrequency;
-	uint16_t numberOfChannels;
+	int numberOfChannels;
 	uint64_t samplesRecorded;
 	edf_hdr_struct* edfhdr;
 	int readChunk;

@@ -21,8 +21,8 @@ EDF::EDF(const string& filePath) : DataFile(filePath)
 
 	samplesRecorded = edfhdr->signalparam[0].smp_in_file;
 
-	samplingFrequency = samplesRecorded;
-	samplingFrequency /= edfhdr->file_duration;
+	samplingFrequency = static_cast<double>(samplesRecorded);
+	samplingFrequency /= static_cast<double>(edfhdr->file_duration);
 	samplingFrequency *= 10*1000*1000;
 
 	numberOfChannels = edfhdr->edfsignals;
@@ -96,8 +96,8 @@ void EDF::readSignalFromFileFloatDouble(std::vector<T*> dataChannels, uint64_t f
 
 	while (firstSample <= lastSample)
 	{
-		int last = min(nextBoundary, lastSample + 1);
-		int n = last - firstSample;
+		uint64_t last = min(nextBoundary, lastSample + 1);
+		int n = static_cast<int>(last - firstSample);
 
 		for (unsigned int i = 0; i < getChannelCount(); i++)
 		{
@@ -105,7 +105,7 @@ void EDF::readSignalFromFileFloatDouble(std::vector<T*> dataChannels, uint64_t f
 			assert(err == n && "edfread_physical_samples failed.");
 
 			for (int j = 0; j < n; j++)
-				dataChannels[i][j] = readChunkBuffer[j];
+				dataChannels[i][j] = static_cast<T>(readChunkBuffer[j]);
 
 			dataChannels[i] += n;
 		}

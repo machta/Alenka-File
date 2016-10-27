@@ -303,15 +303,16 @@ void GDF2::readSignalFromFileFloatDouble(vector<T*> dataChannels, const uint64_t
 	int samplesPerRecord = vh.samplesPerRecord[0];
 	int recordChannelBytes = samplesPerRecord*dataTypeSize;
 
-	unsigned int recordI = firstSample/samplesPerRecord;
+	uint64_t recordI = firstSample/samplesPerRecord;
 	seekFile(startOfData + recordI*recordChannelBytes*getChannelCount(), true);
 
-	int firstSampleToCopy = firstSample%samplesPerRecord;
+	int firstSampleToCopy = static_cast<int>(firstSample%samplesPerRecord);
 
 	for (; recordI <= lastSample/samplesPerRecord; ++recordI)
 	{
-		int copyCount = min<int>(samplesPerRecord, lastSample - recordI*samplesPerRecord - firstSampleToCopy + 1);
+		int copyCount = min<int>(samplesPerRecord, static_cast<int>(lastSample - recordI*samplesPerRecord) - firstSampleToCopy + 1);
 
+		assert(copyCount > 0 && "Ensure there is something to copy");
 		assert(firstSample + copyCount - 1 <= lastSample && "Make sure we don't write beyond the output buffer.");
 		assert(firstSampleToCopy + copyCount <= samplesPerRecord && "Make sure we don't acceed tmp buffer size.");
 
@@ -323,7 +324,7 @@ void GDF2::readSignalFromFileFloatDouble(vector<T*> dataChannels, const uint64_t
 				calibrateSamples(recordDoubleBuffer, samplesPerRecord, vh.digitalMinimum[channelI], scale[channelI], vh.physicalMinimum[channelI]);
 
 			for (int i = 0; i < copyCount; i++)
-				dataChannels[channelI][i] = recordDoubleBuffer[firstSampleToCopy + i];
+				dataChannels[channelI][i] = static_cast<T>(recordDoubleBuffer[firstSampleToCopy + i]);
 
 			dataChannels[channelI] += copyCount;
 		}

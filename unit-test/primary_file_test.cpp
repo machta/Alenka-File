@@ -96,7 +96,7 @@ public:
 			hasValues = true;
 
 			fstream valuesFile;
-			valuesFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+			valuesFile.exceptions(ifstream::failbit | ifstream::badbit);
 			valuesFile.open(path + "_values.dat");
 
 			for (unsigned int i = 0; i < channelCount; i++)
@@ -150,7 +150,7 @@ public:
 		fillVector(a, static_cast<double>(0xAAAAAAAAAAAAAAAA));
 		fillVector(b, static_cast<double>(0xBBBBBBBBBBBBBBBB));
 
-		int last = file->getSamplesRecorded() - 1;
+		size_t last = file->getSamplesRecorded() - 1;
 		file->readSignal(a.data(), last - nNormal + 1, last + nZero);
 		file->readSignal(b.data(), last - nNormal + 1, last);
 
@@ -339,7 +339,8 @@ TEST_F(primary_file_test, EDF_metaInfo)
 
 TEST_F(primary_file_test, EDF_data_00)
 {
-	edf00.dataTest(unique_ptr<DataFile>(edf00.makeEDF()).get(), MAX_REL_ERR_DOUBLE/10000, MAX_REL_ERR_FLOAT/1000, MAX_ABS_ERR_DOUBLE/100000, MAX_ABS_ERR_FLOAT/100);
+	edf00.dataTest(unique_ptr<DataFile>(edf00.makeEDF()).get(), MAX_REL_ERR_DOUBLE/10000,
+				   MAX_REL_ERR_FLOAT/1000, MAX_ABS_ERR_DOUBLE/100000, MAX_ABS_ERR_FLOAT/100);
 }
 
 // TODO: add a small edf file to test; like the gdf01

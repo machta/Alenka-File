@@ -5,6 +5,10 @@ project(Alenka-File)
 option(BUILD_TEST "Builds unit tests." OFF)
 set(CMAKE_CXX_STANDARD 11)
 
+if (MSVC)
+	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+endif()
+
 # First build all the library dependencies.
 add_subdirectory(EDFlib)
 set(INC ${INC} EDFlib)

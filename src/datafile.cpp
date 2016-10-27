@@ -73,7 +73,7 @@ void DataFile::save(xml_document* const infoFile)
 {
 	string fp = filePath + ".info";
 	bool res = infoFile->save_file(fp.c_str());
-	assert(res && "Assure the .info file was written successfully.");
+	assert(res && "Assure the .info file was written successfully."); (void)res;
 }
 
 bool DataFile::load(xml_document* infoFile)

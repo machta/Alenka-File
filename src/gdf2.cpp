@@ -289,7 +289,7 @@ if (DataFile::load(infoFile) == false)
 	return true;
 }
 
-void GDF2::readGdfEventTable(int numberOfEvents, int eventTableMode)
+void GDF2::readGdfEventTable(int /*numberOfEvents*/, int /*eventTableMode*/)
 {
 }
 

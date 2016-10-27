@@ -34,7 +34,7 @@ LibGDF::~LibGDF()
 	delete gdfReader;
 }
 
-time_t LibGDF::getStartDate(int timeZone) const
+time_t LibGDF::getStartDate(int) const
 {
 	uint32_t startDate[2];
 	memcpy(startDate, &gdfReader->getMainHeader_readonly().get_recording_start(), sizeof(startDate));

@@ -126,16 +126,16 @@ private:
 	} vh;
 
 	template<typename T>
-	void readFile(T* val, int elements = 1)
+	void readFile(T* val, unsigned int elements = 1)
 	{
 		file.read(reinterpret_cast<char*>(val), sizeof(T)*elements);
 
 		assert(file && "File read successfully.");
-		assert(file.gcount() == sizeof(T)*elements && "Not all bytes were read from the file.");
+		assert(static_cast<size_t>(file.gcount()) == sizeof(T)*elements && "Not all bytes were read from the file.");
 		
 		if (isLittleEndian == false)
 		{
-			for (int i = 0; i < elements; ++i)
+			for (unsigned int i = 0; i < elements; ++i)
 			{
 				changeEndianness(val + i);
 			}
@@ -169,11 +169,11 @@ private:
 	}
 
 	template<typename T>
-	void writeFile(const T* val, int elements = 1)
+	void writeFile(const T* val, unsigned int elements = 1)
 	{
 		if (isLittleEndian == false)
 		{
-			for (int i = 0; i < elements; ++i)
+			for (unsigned int i = 0; i < elements; ++i)
 			{
 				T tmp = val[i];
 				changeEndianness(&tmp);

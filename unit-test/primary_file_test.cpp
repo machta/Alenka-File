@@ -120,13 +120,8 @@ public:
 		EXPECT_EQ(file->getSamplesRecorded(), samplesRecorded);
 	}
 
-	void outOfBoundsTest(DataFile* file)
+	void outOfBoundsTest(DataFile* file, int nNormal, int nZero)
 	{
-		//int nNormal = 149;
-		//int nZero = 229;
-		int nNormal = 10;
-		int nZero = 20;
-
 		vector<double> a((nNormal + nZero)*file->getChannelCount());
 		vector<double> b(nNormal*file->getChannelCount());
 		vector<double> zero(nZero*file->getChannelCount(), 0);
@@ -161,6 +156,21 @@ public:
 		compareMatrix(a.data(), b.data(), file->getChannelCount(), nNormal, nNormal + nZero, nNormal, &relErr, &absErr);
 		EXPECT_DOUBLE_EQ(relErr, 0);
 		EXPECT_DOUBLE_EQ(absErr, 0);
+	}
+
+	void outOfBoundsTest(DataFile* file)
+	{
+		outOfBoundsTest(file, 1, 0);
+		outOfBoundsTest(file, 100, 0);
+
+		vector<int> valuesToTry = {29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 100, 101, 149, 200, 229, 1111};
+
+		for (int i = 1; i <= 25; i++)
+			valuesToTry.push_back(i);
+
+		for (int e : valuesToTry)
+			for (int ee : valuesToTry)
+				outOfBoundsTest(file, e, ee);
 	}
 
 	void dataTest(DataFile* file, double maxRelErrDouble = MAX_REL_ERR_DOUBLE, double maxRelErrFloat = MAX_REL_ERR_FLOAT,

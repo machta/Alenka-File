@@ -310,7 +310,7 @@ void GDF2::readSignalFromFileFloatDouble(vector<T*> dataChannels, const uint64_t
 
 	for (; recordI <= lastSample/samplesPerRecord; ++recordI)
 	{
-		int copyCount = min<int>(samplesPerRecord, static_cast<int>(lastSample - recordI*samplesPerRecord) - firstSampleToCopy + 1);
+		int copyCount = min<int>(samplesPerRecord - firstSampleToCopy, static_cast<int>(lastSample - recordI*samplesPerRecord) - firstSampleToCopy + 1);
 
 		assert(copyCount > 0 && "Ensure there is something to copy");
 		assert(firstSample + copyCount - 1 <= lastSample && "Make sure we don't write beyond the output buffer.");

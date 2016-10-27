@@ -2,6 +2,7 @@
 
 #include "edflib.h"
 
+#include <algorithm>
 #include <cassert>
 #include <ctime>
 

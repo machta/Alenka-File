@@ -1,5 +1,6 @@
 #include "datafile.h"
 
+#include <cassert>
 #include <cmath>
 #include <fstream>
 #include <mutex>
@@ -129,6 +130,9 @@ private:
 	{
 		file.read(reinterpret_cast<char*>(val), sizeof(T)*elements);
 
+		assert(file && "File read successfully.");
+		assert(file.gcount() == sizeof(T)*elements && "Not all bytes were read from the file.");
+		
 		if (isLittleEndian == false)
 		{
 			for (int i = 0; i < elements; ++i)

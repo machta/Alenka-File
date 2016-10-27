@@ -1,7 +1,6 @@
 #include "gdf2.h"
 
 #include <algorithm>
-#include <cassert>
 #include <cstring>
 
 using namespace std;
@@ -49,11 +48,14 @@ void calibrateSamples(double* samples, int n, double digitalMinimum, double scal
 
 } // namespace
 
+// TODO: handle fstream exceptions in a clear and more informative way
+
 GDF2::GDF2(const string& filePath, bool uncalibrated) : DataFile(filePath)
 {
 	isLittleEndian = testLittleEndian();
 
-	file.open(filePath);
+	file.exceptions(ifstream::failbit | ifstream::badbit);
+	file.open(filePath, file.in | file.out | file.binary);
 	assert(file.is_open() && "File GDF2 was not successfully opened.");
 
 	// Load fixed header.
@@ -131,7 +133,7 @@ GDF2::GDF2(const string& filePath, bool uncalibrated) : DataFile(filePath)
 
 	// Load variable header.
 	seekFile(2);
-	assert(tellFile() == 256 && "Make sure we read all of the fixed header.");
+	assert(tellFile() == streampos(256) && "Make sure we read all of the fixed header.");
 
 	vh.label = new char[getChannelCount()][16 + 1];
 	for (unsigned int i = 0; i < getChannelCount(); ++i)
@@ -190,7 +192,7 @@ GDF2::GDF2(const string& filePath, bool uncalibrated) : DataFile(filePath)
 	vh.sensorInfo = new char[getChannelCount()][20];
 	readFile(*vh.sensorInfo, 20*getChannelCount());
 
-	assert((tellFile() == -1 || tellFile() == 256 + 256*getChannelCount()) && "Make sure we read all of the variable header.");
+	assert((tellFile() == streampos(-1) || tellFile() == streampos(256 + 256*getChannelCount())) && "Make sure we read all of the variable header.");
 
 	// Initialize other members.
 	samplesRecorded = vh.samplesPerRecord[0]*fh.numberOfDataRecords;

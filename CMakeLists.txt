@@ -24,7 +24,7 @@ set(INC ${INC} pugixml/src)
 set(LIBS_TO_LINK alenka-file EDF GDF pugixml)
 
 # The library.
-include_directories(include ${INC})
+include_directories(include ${INC} ${BOOST_ROOT})
 
 if(BUILD_TEST)
 	add_subdirectory (unit-test)

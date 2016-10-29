@@ -1,4 +1,6 @@
 # Build Google Test library.
+set(BUILD_GMOCK OFF)
+set(BUILD_GTEST ON)
 add_subdirectory(googletest)
 include_directories(../include googletest/googletest/include)
 

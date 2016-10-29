@@ -282,8 +282,9 @@ void GDF2::save(pugi::xml_document* const infoFile)
 
 bool GDF2::load(pugi::xml_document* infoFile)
 {
-if (DataFile::load(infoFile) == false)
+	if (DataFile::load(infoFile) == false)
 	{
+
 	}
 
 	return true;

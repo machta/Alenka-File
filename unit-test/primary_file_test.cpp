@@ -55,7 +55,24 @@ const double MAX_REL_ERR_FLOAT = 0.0001;
 const double MAX_ABS_ERR_DOUBLE = 0.000001;
 const double MAX_ABS_ERR_FLOAT = 0.01;
 
+void printException(function<void (void)> fun)
+{
+	try
+	{
+		fun();
+	}
+	catch (exception& e)
+	{
+		cerr << "Caught an std exception: " << e.what() << endl;
+		throw;
+	}
+	catch (...)
+	{
+		cerr << "Caught an exception." << endl;
+	}
 }
+
+} // namespace
 
 class testFile
 {
@@ -246,10 +263,10 @@ TEST_F(primary_file_test, outOfBounds)
 // Tests of my GDF implementation.
 TEST_F(primary_file_test, GDF2_exceptions)
 {
-	EXPECT_THROW(GDF2 file(path + "gdf/empty.gdf"), runtime_error);
-	EXPECT_THROW(GDF2 file(path + "gdf/headerOnly.gdf"), runtime_error);
-	EXPECT_THROW(GDF2 file(path + "gdf/badType.gdf"), runtime_error);
-	EXPECT_THROW(GDF2 file(path + "gdf/badFile.gdf"), runtime_error);
+	EXPECT_THROW(printException([this] () { GDF2 file(path + "gdf/empty.gdf"); }), runtime_error);
+	EXPECT_THROW(printException([this] () { GDF2 file(path + "gdf/headerOnly.gdf"); }), runtime_error);
+	EXPECT_THROW(printException([this] () { GDF2 file(path + "gdf/badType.gdf"); }), runtime_error);
+	EXPECT_THROW(printException([this] () { GDF2 file(path + "gdf/badFile.gdf"); }), runtime_error);
 
 	unique_ptr<DataFile> file;
 
@@ -257,7 +274,7 @@ TEST_F(primary_file_test, GDF2_exceptions)
 	data.insert(data.begin(), 100000, 0);
 
 	ASSERT_NO_THROW(file.reset(new GDF2(path + "gdf/gdf00.gdf")));
-	EXPECT_THROW(file->readSignal(data.data(), 100, 50), invalid_argument);
+	EXPECT_THROW(printException([this, &file, &data] () { file->readSignal(data.data(), 100, 50); }), invalid_argument);
 }
 
 TEST_F(primary_file_test, GDF2_startTime)
@@ -286,8 +303,8 @@ TEST_F(primary_file_test, LibGDF_exceptions)
 {
 	//EXPECT_THROW(LibGDF file(path + "gdf/empty.gdf"), runtime_error);
 	//EXPECT_THROW(LibGDF file(path + "gdf/headerOnly.gdf"), runtime_error);
-	EXPECT_ANY_THROW(LibGDF file(path + "gdf/badType.gdf"));
-	EXPECT_ANY_THROW(LibGDF file(path + "gdf/badFile.gdf"));
+	EXPECT_ANY_THROW(printException([this] () { LibGDF file(path + "gdf/badType.gdf"); }));
+	EXPECT_ANY_THROW(printException([this] () { LibGDF file(path + "gdf/badFile.gdf"); }));
 
 	unique_ptr<DataFile> file;
 
@@ -295,7 +312,7 @@ TEST_F(primary_file_test, LibGDF_exceptions)
 	data.insert(data.begin(), 100000, 0);
 
 	ASSERT_NO_THROW(file.reset(new LibGDF(path + "gdf/gdf00.gdf")));
-	EXPECT_THROW(file->readSignal(data.data(), 100, 50), invalid_argument);
+	EXPECT_THROW(printException([this, &file, &data] () { file->readSignal(data.data(), 100, 50); }), invalid_argument);
 }
 
 TEST_F(primary_file_test, LibGDF_startTime)
@@ -328,7 +345,7 @@ TEST_F(primary_file_test, EDF_exceptions)
 	data.insert(data.begin(), 100000, 0);
 
 	ASSERT_NO_THROW(file.reset(new EDF(path + "edf/edf00.edf")));
-	EXPECT_THROW(file->readSignal(data.data(), 100, 50), invalid_argument);
+	EXPECT_THROW(printException([this, &file, &data] () { file->readSignal(data.data(), 100, 50); }), invalid_argument);
 }
 
 TEST_F(primary_file_test, EDF_startTime)

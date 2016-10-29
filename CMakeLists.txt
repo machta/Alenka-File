@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.1)
 project(Alenka-File)
 
 # Options.
-option(BUILD_TEST "Builds unit tests." OFF)
+option(BUILD_TESTS_ALENKA_FILE "Builds unit tests for Alenka-File." OFF)
 set(CMAKE_CXX_STANDARD 11)
 
 if (MSVC)
@@ -35,9 +35,9 @@ endif()
 
 include_directories(include ${INC} ${BOOST_ROOT})
 
-if(BUILD_TEST)
+if(BUILD_TESTS_ALENKA_FILE)
 	add_subdirectory (unit-test)
-endif (BUILD_TEST)
+endif (BUILD_TESTS_ALENKA_FILE)
 
 file(GLOB SRC src/*)
 add_library(alenka-file ${SRC})

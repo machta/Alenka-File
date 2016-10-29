@@ -263,8 +263,8 @@ TEST_F(primary_file_test, outOfBounds)
 // Tests of my GDF implementation.
 TEST_F(primary_file_test, GDF2_exceptions)
 {
-	EXPECT_THROW(printException([this] () { GDF2 file(path + "gdf/empty.gdf"); }), runtime_error);
-	EXPECT_THROW(printException([this] () { GDF2 file(path + "gdf/headerOnly.gdf"); }), runtime_error);
+	EXPECT_ANY_THROW(printException([this] () { GDF2 file(path + "gdf/empty.gdf"); }));
+	EXPECT_ANY_THROW(printException([this] () { GDF2 file(path + "gdf/headerOnly.gdf"); }));
 	EXPECT_THROW(printException([this] () { GDF2 file(path + "gdf/badType.gdf"); }), runtime_error);
 	EXPECT_THROW(printException([this] () { GDF2 file(path + "gdf/badFile.gdf"); }), runtime_error);
 
@@ -301,8 +301,10 @@ TEST_F(primary_file_test, GDF2_data_01)
 // Tests of LibGDF.
 TEST_F(primary_file_test, LibGDF_exceptions)
 {
-	//EXPECT_THROW(LibGDF file(path + "gdf/empty.gdf"), runtime_error);
-	//EXPECT_THROW(LibGDF file(path + "gdf/headerOnly.gdf"), runtime_error);
+	//EXPECT_ANY_THROW(printException([this] () { LibGDF file(path + "gdf/empty.gdf"); }));
+	//EXPECT_ANY_THROW(printException([this] () { LibGDF file(path + "gdf/headerOnly.gdf"); }));
+	// These two tests halt on assertions. Would it be better if exceptions were thrown instead?
+
 	EXPECT_ANY_THROW(printException([this] () { LibGDF file(path + "gdf/badType.gdf"); }));
 	EXPECT_ANY_THROW(printException([this] () { LibGDF file(path + "gdf/badFile.gdf"); }));
 

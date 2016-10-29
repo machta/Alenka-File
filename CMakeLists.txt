@@ -23,8 +23,8 @@ set(INC ${INC} libgdf/libgdf/include)
 add_subdirectory(pugixml)
 set(INC ${INC} pugixml/src)
 
-# If you include this library into your project, you will want to link to these libraries.
-set(LIBS_TO_LINK alenka-file EDF GDF pugixml)
+# If you want to use this library, you need to link to these libraries.
+set(LIBS_TO_LINK_ALENKA_FILE alenka-file EDF GDF pugixml)
 
 # The library.
 if (MSVC)

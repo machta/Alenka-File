@@ -11,20 +11,21 @@ endif()
 
 # First build all the library dependencies.
 add_subdirectory(EDFlib)
-set(INC ${INC} EDFlib)
+include_directories(EDFlib)
 
 set(BUILD_SHARED_LIBS false)
 # This macro turns on my changes in the library that handle a newer version of the GDF format.
 add_definitions(-DALLOW_GDF_V_251)
 add_subdirectory(libgdf)
 set_target_properties(gdf_merger PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
-set(INC ${INC} libgdf/libgdf/include)
+include_directories(libgdf/libgdf/include)
 
 add_subdirectory(pugixml)
-set(INC ${INC} pugixml/src)
+include_directories(pugixml/src)
 
 # If you want to use this library, you need to link to these libraries.
 set(LIBS_TO_LINK_ALENKA_FILE alenka-file EDF GDF pugixml)
+set(LIBS_TO_LINK_ALENKA_FILE ${LIBS_TO_LINK_ALENKA_FILE} PARENT_SCOPE)
 
 # The library.
 if (MSVC)
@@ -33,11 +34,11 @@ elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wconversion -pedantic")
 endif()
 
-include_directories(include ${INC} ${BOOST_ROOT})
+include_directories(include ${BOOST_ROOT})
 
 if(BUILD_TESTS_ALENKA_FILE)
 	add_subdirectory (unit-test)
 endif (BUILD_TESTS_ALENKA_FILE)
 
-file(GLOB SRC src/*)
+file(GLOB SRC src/*.cpp)
 add_library(alenka-file ${SRC})

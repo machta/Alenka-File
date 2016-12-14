@@ -1,9 +1,10 @@
-#include "gdf2.h"
+#include <Alenka-File/gdf2.h>
 
 #include <algorithm>
 #include <cstring>
 
 using namespace std;
+using namespace AlenkaFile;
 
 namespace
 {
@@ -49,6 +50,9 @@ void calibrateSamples(double* samples, int n, double digitalMinimum, double scal
 } // namespace
 
 // TODO: handle fstream exceptions in a clear and more informative way
+
+namespace AlenkaFile
+{
 
 GDF2::GDF2(const string& filePath, bool uncalibrated) : DataFile(filePath)
 {
@@ -333,3 +337,5 @@ void GDF2::readSignalFromFileFloatDouble(vector<T*> dataChannels, const uint64_t
 		firstSampleToCopy = 0;
 	}
 }
+
+} // namespace AlenkaFile

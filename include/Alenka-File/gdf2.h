@@ -1,12 +1,15 @@
-#include "datafile.h"
+#include <Alenka-File/datafile.h>
 
 #include <cassert>
 #include <cmath>
 #include <fstream>
 #include <mutex>
 
-#ifndef GDF2_H
-#define GDF2_H
+#ifndef ALENKAFILE_GDF2_H
+#define ALENKAFILE_GDF2_H
+
+namespace AlenkaFile
+{
 
 // ??? * All methods accessing the information stored in the file are thread-safe.
 
@@ -197,4 +200,6 @@ private:
 	void readGdfEventTable(int numberOfEvents, int eventTableMode);
 };
 
-#endif // GDF2_H
+} // namespace AlenkaFile
+
+#endif // ALENKAFILE_GDF2_H

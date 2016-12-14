@@ -1,14 +1,15 @@
 #include "gtest/gtest.h"
 
-#include "gdf2.h"
-#include "edf.h"
-#include "libgdf.h"
+#include <Alenka-File/gdf2.h>
+#include <Alenka-File/edf.h>
+#include <Alenka-File/libgdf.h>
 
 #include <fstream>
 #include <string>
 #include <memory>
 
 using namespace std;
+using namespace AlenkaFile;
 
 namespace
 {
@@ -69,6 +70,7 @@ void printException(function<void (void)> fun)
 	catch (...)
 	{
 		cerr << "Caught an exception." << endl;
+		throw;
 	}
 }
 

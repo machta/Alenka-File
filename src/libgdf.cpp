@@ -1,13 +1,22 @@
-#include "libgdf.h"
+#include <Alenka-File/libgdf.h>
 
 #include <GDF/Reader.h>
 
 using namespace std;
 using namespace gdf;
+using namespace AlenkaFile;
+
+namespace
+{
 
 const int MIN_READ_CHUNK = 200;
 const int OPT_READ_CHUNK = 2*1000;
 const int MAX_READ_CHUNK = 2*1000*1000;
+
+} // namespace
+
+namespace AlenkaFile
+{
 
 LibGDF::LibGDF(const string& filePath) : DataFile(filePath)
 {
@@ -87,3 +96,5 @@ void LibGDF::readSignalFromFileFloatDouble(std::vector<T*> dataChannels, uint64_
 		nextBoundary += readChunk;
 	}
 }
+
+} // namespace AlenkaFile

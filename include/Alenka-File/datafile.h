@@ -1,5 +1,5 @@
-#ifndef DATAFILE_H
-#define DATAFILE_H
+#ifndef ALENKAFILE_DATAFILE_H
+#define ALENKAFILE_DATAFILE_H
 
 #include <cstdint>
 #include <string>
@@ -12,6 +12,9 @@ namespace pugi
 {
 class xml_document;
 }
+
+namespace AlenkaFile
+{
 
 /**
  * @brief An abstract base class of the data files.
@@ -154,4 +157,6 @@ private:
 	std::string filePath;
 };
 
-#endif // DATAFILE_H
+} // namespace AlenkaFile
+
+#endif // ALENKAFILE_DATAFILE_H

@@ -1,9 +1,12 @@
-#include "datafile.h"
+#include <Alenka-File/datafile.h>
 
-#ifndef EDF_H
-#define EDF_H
+#ifndef ALENKAFILE_EDF_H
+#define ALENKAFILE_EDF_H
 
 class edf_hdr_struct;
+
+namespace AlenkaFile
+{
 
 /**
  * @brief A class implementing the EDF+ and BDF+ types.
@@ -57,4 +60,6 @@ private:
 	void readSignalFromFileFloatDouble(std::vector<T*> dataChannels, uint64_t firstSample, uint64_t lastSample);
 };
 
-#endif // EDF_H
+} // namespace AlenkaFile
+
+#endif // ALENKAFILEEDF_H

@@ -1,12 +1,15 @@
-#include "datafile.h"
+#include <Alenka-File/datafile.h>
 
-#ifndef LIBGDF_H
-#define LIBGDF_H
+#ifndef ALENKAFILE_LIBGDF_H
+#define ALENKAFILE_LIBGDF_H
 
 namespace gdf
 {
 class Reader;
 }
+
+namespace AlenkaFile
+{
 
 /**
  * @brief A class implementing the GDF file type.
@@ -57,4 +60,6 @@ private:
 	void readSignalFromFileFloatDouble(std::vector<T*> dataChannels, uint64_t firstSample, uint64_t lastSample);
 };
 
-#endif // LIBGDF_H
+} // namespace AlenkaFile
+
+#endif // ALENKAFILE_LIBGDF_H

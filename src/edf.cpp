@@ -1,4 +1,4 @@
-#include "edf.h"
+#include <Alenka-File/edf.h>
 
 #include "edflib.h"
 
@@ -7,10 +7,19 @@
 #include <ctime>
 
 using namespace std;
+using namespace AlenkaFile;
+
+namespace
+{
 
 const int MIN_READ_CHUNK = 200;
 const int OPT_READ_CHUNK = 2*1000;
 const int MAX_READ_CHUNK = 2*1000*1000;
+
+} // namespace
+
+namespace AlenkaFile
+{
 
 EDF::EDF(const string& filePath) : DataFile(filePath)
 {
@@ -114,3 +123,5 @@ void EDF::readSignalFromFileFloatDouble(std::vector<T*> dataChannels, uint64_t f
 		nextBoundary += readChunk;
 	}
 }
+
+} // namespace AlenkaFile

@@ -1,4 +1,4 @@
-#include "datafile.h"
+#include <Alenka-File/datafile.h>
 
 #include "pugixml.hpp"
 
@@ -9,6 +9,7 @@
 
 using namespace std;
 using namespace pugi;
+using namespace AlenkaFile;
 
 namespace
 {
@@ -61,6 +62,9 @@ void readSignalFloatDouble(DataFile* file, T* data, int64_t firstSample, int64_t
 
 } // namespace
 
+namespace AlenkaFile
+{
+
 DataFile::DataFile(const string& filePath) : filePath(filePath)
 {
 }
@@ -93,3 +97,5 @@ void DataFile::readSignal(double* data, int64_t firstSample, int64_t lastSample)
 {
 	readSignalFloatDouble(this, data, firstSample, lastSample);
 }
+
+} // namespace AlenkaFile

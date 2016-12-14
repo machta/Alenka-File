@@ -4,6 +4,7 @@ project(Alenka-File)
 # Options.
 option(BUILD_TESTS_ALENKA_FILE "Builds unit tests for Alenka-File." OFF)
 set(CMAKE_CXX_STANDARD 11)
+set(BUILD_SHARED_LIBS false)
 
 if (MSVC)
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
@@ -42,3 +43,8 @@ endif (BUILD_TESTS_ALENKA_FILE)
 
 file(GLOB SRC src/*.cpp)
 add_library(alenka-file ${SRC})
+
+add_custom_target(install-alenka-file
+	COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/lib
+	COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:alenka-file> $<TARGET_FILE:EDF> $<TARGET_FILE:GDF> $<TARGET_FILE:pugixml> ${CMAKE_INSTALL_PREFIX}/lib
+	COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/include ${CMAKE_INSTALL_PREFIX}/include)

@@ -62,4 +62,4 @@ private:
 
 } // namespace AlenkaFile
 
-#endif // ALENKAFILEEDF_H
+#endif // ALENKAFILE_EDF_H

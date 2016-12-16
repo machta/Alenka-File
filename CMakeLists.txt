@@ -41,7 +41,7 @@ if(BUILD_TESTS_ALENKA_FILE)
 	add_subdirectory (unit-test)
 endif (BUILD_TESTS_ALENKA_FILE)
 
-file(GLOB SRC src/*.cpp)
+file(GLOB SRC src/*)
 add_library(alenka-file ${SRC})
 
 add_custom_target(install-alenka-file

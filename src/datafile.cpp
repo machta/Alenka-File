@@ -31,33 +31,38 @@ void readSignalFloatDouble(DataFile* file, T* data, int64_t firstSample, int64_t
 	if (lastSample < firstSample)
 		throw invalid_argument("'lastSample' must be greater than or equal to 'firstSample'.");
 
-	vector<T*> dataChannels(file->getChannelCount());
-
 	int64_t len = lastSample - firstSample + 1;
+	vector<T*> dataChannels(file->getChannelCount());
 	for (unsigned int i = 0; i < file->getChannelCount(); i++)
-	{
 		dataChannels[i] = data + i*len;
-	}
 
 	if (firstSample < 0)
 	{
-		fillWithZeroes(dataChannels, -firstSample);
+		fillWithZeroes(dataChannels, min(-firstSample, len));
 		firstSample = 0;
 	}
 
 	int64_t lastInFile = min<int64_t>(file->getSamplesRecorded() - 1, lastSample);
 
-	file->readSignalFromFile(dataChannels, firstSample, lastInFile);
+	if (firstSample <= lastInFile)
+	{
+		file->readSignalFromFile(dataChannels, firstSample, lastInFile);
+
+		for (auto& e : dataChannels)
+			e += lastInFile - firstSample + 1;
+	}
 
 	if (lastInFile < lastSample)
 	{
-		for (auto& e : dataChannels)
-			e += lastInFile - firstSample + 1;
-
-		fillWithZeroes(dataChannels, lastSample - lastInFile);
-
-		assert(dataChannels.front() == data + len && "Is the first channel pointer pointing just past the first channel");
+		fillWithZeroes(dataChannels, min(lastSample - lastInFile, len));
 	}
+
+#ifndef NDEBUG
+	for (unsigned int i = 0; i < file->getChannelCount(); i++)
+	{
+		assert(dataChannels.at(i) == data + (i + 1)*len && "Make sure that precisely the required number of samples was read.");
+	}
+#endif
 }
 
 } // namespace

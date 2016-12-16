@@ -145,6 +145,7 @@ public:
 		vector<double> b(nNormal*file->getChannelCount());
 		vector<double> zero(nZero*file->getChannelCount(), 0);
 
+		// Read partially before.
 		fillVector(a, static_cast<double>(0xAAAAAAAAAAAAAAAA));
 		fillVector(b, static_cast<double>(0xBBBBBBBBBBBBBBBB));
 
@@ -161,6 +162,7 @@ public:
 		EXPECT_DOUBLE_EQ(relErr, 0);
 		EXPECT_DOUBLE_EQ(absErr, 0);
 
+		// Read partially after.
 		fillVector(a, static_cast<double>(0xAAAAAAAAAAAAAAAA));
 		fillVector(b, static_cast<double>(0xBBBBBBBBBBBBBBBB));
 
@@ -175,6 +177,31 @@ public:
 		compareMatrix(a.data(), b.data(), file->getChannelCount(), nNormal, nNormal + nZero, nNormal, &relErr, &absErr);
 		EXPECT_DOUBLE_EQ(relErr, 0);
 		EXPECT_DOUBLE_EQ(absErr, 0);
+
+		// Read only before.
+		if (nZero > 0)
+		{
+			fillVector(a, static_cast<double>(0xAAAAAAAAAAAAAAAA));
+
+			file->readSignal(a.data(), -1000 -nZero - nNormal + 1, -1000 -nNormal);
+
+			compareMatrix(a.data(), zero.data(), file->getChannelCount(), nZero, &relErr, &absErr);
+			EXPECT_DOUBLE_EQ(relErr, 0);
+			EXPECT_DOUBLE_EQ(absErr, 0);
+		}
+
+		// Read only after.
+		if (nZero > 0)
+		{
+			fillVector(a, static_cast<double>(0xAAAAAAAAAAAAAAAA));
+
+			auto end = 1000 + file->getSamplesRecorded();
+			file->readSignal(a.data(), end + nNormal, end + nNormal + nZero - 1);
+
+			compareMatrix(a.data(), zero.data(), file->getChannelCount(), nZero, &relErr, &absErr);
+			EXPECT_DOUBLE_EQ(relErr, 0);
+			EXPECT_DOUBLE_EQ(absErr, 0);
+		}
 	}
 
 	void outOfBoundsTest(DataFile* file)

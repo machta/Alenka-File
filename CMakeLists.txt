@@ -4,7 +4,8 @@ project(Alenka-File)
 # Options.
 option(BUILD_TESTS_ALENKA_FILE "Builds unit tests for Alenka-File." OFF)
 set(CMAKE_CXX_STANDARD 11)
-set(BUILD_SHARED_LIBS false)
+set(BUILD_SHARED_LIBS off CACHE BOOL "")
+set(BOOST_ROOT "C:/boost" "C:/boost_1_62_0" CACHE PATH "Boost installation directory.")
 
 if (MSVC)
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
@@ -29,20 +30,20 @@ set(LIBS_TO_LINK_ALENKA_FILE alenka-file EDF GDF pugixml)
 set(LIBS_TO_LINK_ALENKA_FILE ${LIBS_TO_LINK_ALENKA_FILE} PARENT_SCOPE)
 
 # The library.
-if (MSVC)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
-elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wconversion -pedantic")
+file(GLOB SRC src/*)
+add_library(alenka-file STATIC ${SRC})
+
+if(MSVC)
+	set_source_files_properties(${SRC} PROPERTIES COMPILE_FLAGS "-W4")
+else()
+	set_source_files_properties(${SRC} PROPERTIES COMPILE_FLAGS "-Wall -pedantic -Wextra -Wconversion")
 endif()
 
-include_directories(include ${BOOST_ROOT})
+include_directories(include ${Boost_INCLUDE_DIR})
 
 if(BUILD_TESTS_ALENKA_FILE)
-	add_subdirectory (unit-test)
-endif (BUILD_TESTS_ALENKA_FILE)
-
-file(GLOB SRC src/*)
-add_library(alenka-file ${SRC})
+	add_subdirectory(unit-test)
+endif()
 
 add_custom_target(install-alenka-file
 	COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/lib

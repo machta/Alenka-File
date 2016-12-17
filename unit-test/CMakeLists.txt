@@ -9,5 +9,11 @@ file(GLOB SRC *.cpp)
 add_executable(unit-test ${SRC})
 target_link_libraries(unit-test ${LIBS_TO_LINK_ALENKA_FILE} gtest gtest_main)
 
+if(MSVC)
+	set_source_files_properties(${SRC} PROPERTIES COMPILE_FLAGS "-W4")
+else()
+	set_source_files_properties(${SRC} PROPERTIES COMPILE_FLAGS "-Wall -pedantic -Wextra -Wconversion")
+endif()
+
 # Download test files if needed. This is a workaround for GitHub's screwed up LFS system.
 add_custom_command(TARGET PRE_BUILD unit-test COMMAND bash download-data.sh WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/unit-test/data)

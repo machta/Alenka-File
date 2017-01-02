@@ -1,4 +1,4 @@
-#include <Alenka-File/datafile.h>
+#include <AlenkaFile/datafile.h>
 
 #ifndef ALENKAFILE_EDF_H
 #define ALENKAFILE_EDF_H

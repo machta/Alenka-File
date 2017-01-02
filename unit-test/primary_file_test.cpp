@@ -1,8 +1,8 @@
 #include "gtest/gtest.h"
 
-#include <Alenka-File/gdf2.h>
-#include <Alenka-File/edf.h>
-#include <Alenka-File/libgdf.h>
+#include <AlenkaFile/gdf2.h>
+#include <AlenkaFile/edf.h>
+#include <AlenkaFile/libgdf.h>
 
 #include <fstream>
 #include <string>

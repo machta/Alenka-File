@@ -1,4 +1,4 @@
-#include <Alenka-File/libgdf.h>
+#include <AlenkaFile/libgdf.h>
 
 #include <GDF/Reader.h>
 

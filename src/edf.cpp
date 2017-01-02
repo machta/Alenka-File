@@ -1,4 +1,4 @@
-#include <Alenka-File/edf.h>
+#include <AlenkaFile/edf.h>
 
 #include "edflib.h"
 

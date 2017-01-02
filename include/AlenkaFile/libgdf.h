@@ -1,4 +1,4 @@
-#include <Alenka-File/datafile.h>
+#include <AlenkaFile/datafile.h>
 
 #ifndef ALENKAFILE_LIBGDF_H
 #define ALENKAFILE_LIBGDF_H

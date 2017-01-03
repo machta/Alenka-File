@@ -5,10 +5,14 @@ project(Alenka-File)
 option(BUILD_TESTS_ALENKA_FILE "Builds unit tests for Alenka-File." OFF)
 set(CMAKE_CXX_STANDARD 11)
 set(BUILD_SHARED_LIBS off CACHE BOOL "")
-set(BOOST_ROOT "C:/boost" "C:/boost_1_62_0" CACHE PATH "Boost installation directory.")
+include_directories(boost)
 
-if (MSVC)
+if(MSVC)
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+else()
+	if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+		add_definitions(-D_GLIBCXX_DEBUG)
+	endif()
 endif()
 
 # First build all the library dependencies.
@@ -19,7 +23,6 @@ set(BUILD_SHARED_LIBS false)
 # This macro turns on my changes in the library that handle a newer version of the GDF format.
 add_definitions(-DALLOW_GDF_V_251)
 add_subdirectory(libgdf)
-set_target_properties(gdf_merger PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
 include_directories(libgdf/libgdf/include)
 
 add_subdirectory(pugixml)
@@ -39,7 +42,7 @@ else()
 	set_source_files_properties(${SRC} PROPERTIES COMPILE_FLAGS "-Wall -pedantic -Wextra -Wconversion")
 endif()
 
-include_directories(include ${Boost_INCLUDE_DIR})
+include_directories(include)
 
 if(BUILD_TESTS_ALENKA_FILE)
 	add_subdirectory(unit-test)

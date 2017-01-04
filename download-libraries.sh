@@ -13,20 +13,18 @@ git clone --depth 1 https://github.com/zeux/pugixml.git
 
 git clone --depth 1 https://github.com/google/googletest.git unit-test/googletest
 
-git clone --depth 1 https://github.com/boostorg/boost.git
-LIBS="libs/program_options libs/config libs/any libs/type_index libs/static_assert libs/throw_exception libs/assert libs/core libs/type_traits libs/mpl libs/preprocessor libs/function libs/integer libs/bind libs/move libs/lexical_cast libs/range libs/iterator libs/detail libs/concept_check libs/utility libs/numeric/conversion libs/array libs/functional libs/container libs/math libs/predef libs/smart_ptr libs/tokenizer"
-cd boost
-GIT_V1=`git --version | sed -r 's/.*([1-9])[.][1-9]*[.].*/\1/'`
-GIT_V2=`git --version | sed -r 's/.*[1-9][.]([1-9]*)[.].*/\1/'`
-if [ $GIT_V1 -ge 2 ]
-then
-	if [ $GIT_V2 -ge 8 ]
-	then
-		git submodule update --init --depth 1 -j 4 -- $LIBS
-	else
-		git submodule update --init -- $LIBS
-	fi
-fi
-cp -rf libs/*/include/boost libs/*/*/include/boost .
-cd -
+BOOST=boost_1_63_0
+curl -L https://sourceforge.net/projects/boost/files/boost/1.63.0/boost_1_63_0.zip > $BOOST.zip
+unzip -q $BOOST.zip
+rm $BOOST.zip
+mkdir -p boost/libs
+mv $BOOST/boost boost
+mv $BOOST/libs/program_options boost/libs
+rm -rf $BOOST
 
+# This version doesn't work in git-bash but is faster.
+#BOOST=boost_1_63_0
+#curl -L https://sourceforge.net/projects/boost/files/boost/1.63.0/boost_1_63_0.zip > $BOOST.zip
+#unzip -q $BOOST.zip $BOOST/boost/* $BOOST/libs/program_options/*
+#rm $BOOST.zip
+#mv $BOOST boost

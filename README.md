@@ -3,8 +3,11 @@
 ### Requirments
 * git
 * cmake (for Ubuntu 14 download the latest version)
+* G++ or Visual C++ compiler
 
 On debian-like systems you can use: `sudo apt install git cmake-gui build-essential`
+
+Visual C++ compiler can be acquired by installing Visual C++ Build Tools 2015. Choose Custom installation, and uncheck all options but "Windows 8.1 SDK". If you already have Visual Studio, you don't need to install this.
 
 ### Build instructions
 1. Clone this repo

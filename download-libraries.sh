@@ -4,8 +4,7 @@ if [ -d libgdf ]
 then
 	libgdf=skipped
 else
-	#git clone --depth 1 https://github.com/mbillingr/libgdf.git &&
-	git clone --depth 1 https://github.com/machta/libgdf.git -b update-gdf-v2.51 &&
+	git clone --depth 1 https://github.com/mbillingr/libgdf.git &&
 	sed -ri 's/(find_package.*)/#\1/' libgdf/libgdf/CMakeLists.txt &&
 	sed -ri 's/(add_subdirectory.*tools.*)/#\1/' libgdf/CMakeLists.txt &&
 	libgdf=OK || libgdf=fail

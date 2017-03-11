@@ -6,7 +6,9 @@ include_directories(googletest/googletest/include)
 
 # The tests.
 file(GLOB SRC *.cpp)
-add_executable(unit-test ${SRC})
+file(GLOB SRC_BOOST_S ../boost/libs/system/src/*.cpp)
+file(GLOB SRC_BOOST_FS ../boost/libs/filesystem/src/*.cpp)
+add_executable(unit-test ${SRC} ${SRC_BOOST_S} ${SRC_BOOST_FS})
 target_link_libraries(unit-test ${LIBS_TO_LINK_ALENKA_FILE} gtest gtest_main)
 
 if(MSVC)

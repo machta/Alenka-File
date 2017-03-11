@@ -53,14 +53,14 @@ time_t LibGDF::getStartDate(int) const
 	return static_cast<time_t>(round(seconds));
 }
 
-void LibGDF::save(pugi::xml_document* const infoFile)
+void LibGDF::save(DataModel* dataModel)
 {
-	DataFile::save(infoFile);
+	DataFile::save(dataModel);
 }
 
-bool LibGDF::load(pugi::xml_document* infoFile)
+bool LibGDF::load(DataModel* dataModel)
 {
-	if (DataFile::load(infoFile) == false)
+	if (DataFile::load(dataModel) == false)
 	{
 	}
 

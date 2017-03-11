@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <set>
 
 using namespace std;
 using namespace AlenkaFile;
@@ -237,8 +238,7 @@ case a_:\
 		scale = new double[getChannelCount()];
 		for (unsigned int i = 0; i < getChannelCount(); ++i)
 		{
-			scale[i] = (vh.digitalMaximum[i] - vh.digitalMinimum[i])/
-					   (vh.physicalMaximum[i] - vh.physicalMinimum[i]);
+			scale[i] = (vh.digitalMaximum[i] - vh.digitalMinimum[i])/(vh.physicalMaximum[i] - vh.physicalMinimum[i]);
 		}
 	}
 	else
@@ -279,23 +279,76 @@ GDF2::~GDF2()
 	delete[] vh.sensorInfo;
 }
 
-void GDF2::save(pugi::xml_document* const infoFile)
+void GDF2::save(DataModel* dataModel)
 {
-	DataFile::save(infoFile);
+	DataFile::save(dataModel);
+
+	// Collect events from montages marked 'save'.
+	vector<uint32_t> positions;
+	vector<uint16_t> types;
+	vector<uint16_t> channels;
+	vector<uint32_t> durations;
+
+	for (int i = 0; i < dataModel->montageTable->rowCount(); ++i)
+	{
+		if (dataModel->montageTable->row(i).save)
+		{
+			AbstractEventTable* et = dataModel->montageTable->eventTable(i);
+
+			for (int j = 0; j < et->rowCount(); ++j)
+			{
+				Event& e = et->row(j);
+				if (e.channel >= -1 && e.type >= 0)
+				{
+					positions.push_back(e.position + 1);
+					types.push_back(static_cast<uint16_t>(dataModel->eventTypeTable->row(e.type).id));
+					channels.push_back(static_cast<uint16_t>(e.channel + 1)); // TODO: Make a warning if these values cannot be converted properly.
+					durations.push_back(e.duration);
+				}
+			}
+		}
+	}
+
+	// Write mode, NEV and SR.
+	seekFile(startOfEventTable, true);
+
+	uint8_t eventTableMode = 3;
+	writeFile(&eventTableMode);
+
+	int numberOfEvents = min(static_cast<int>(positions.size()), (1 << 24) - 1); // 2^24 - 1 is the maximum length of the gdf event table
+	uint8_t nev[3];
+	int tmp = numberOfEvents;
+	nev[0] = static_cast<uint8_t>(tmp%256);
+	tmp >>= 8;
+	nev[1] = static_cast<uint8_t>(tmp%256);
+	tmp >>= 8;
+	nev[2] = static_cast<uint8_t>(tmp%256);
+	if (isLittleEndian == false)
+	{
+		changeEndianness(reinterpret_cast<char*>(nev), 3);
+	}
+	writeFile(nev, 3);
+
+	float sr = static_cast<float>(getSamplingFrequency());
+	writeFile(&sr);
+
+	// Write the events to the gdf event table.
+	writeFile(positions.data(), numberOfEvents);
+	writeFile(types.data(), numberOfEvents);
+	writeFile(channels.data(), numberOfEvents);
+	writeFile(durations.data(), numberOfEvents);
 }
 
-bool GDF2::load(pugi::xml_document* infoFile)
+bool GDF2::load(DataModel* dataModel)
 {
-	if (DataFile::load(infoFile) == false)
+	if (DataFile::load(dataModel) == false)
 	{
+		fillDefaultMontage(dataModel);
 
+		readGdfEventTable(dataModel);
 	}
 
 	return true;
-}
-
-void GDF2::readGdfEventTable(int /*numberOfEvents*/, int /*eventTableMode*/)
-{
 }
 
 template<typename T>
@@ -315,7 +368,7 @@ void GDF2::readSignalFromFileFloatDouble(vector<T*> dataChannels, const uint64_t
 
 	for (; recordI <= lastSample/samplesPerRecord; ++recordI)
 	{
-		int copyCount = min<int>(samplesPerRecord - firstSampleToCopy, static_cast<int>(lastSample - recordI*samplesPerRecord) - firstSampleToCopy + 1);
+		int copyCount = min(samplesPerRecord - firstSampleToCopy, static_cast<int>(lastSample - recordI*samplesPerRecord) - firstSampleToCopy + 1);
 
 		assert(copyCount > 0 && "Ensure there is something to copy");
 		assert(firstSample + copyCount - 1 <= lastSample && "Make sure we don't write beyond the output buffer.");
@@ -335,6 +388,106 @@ void GDF2::readSignalFromFileFloatDouble(vector<T*> dataChannels, const uint64_t
 		}
 
 		firstSampleToCopy = 0;
+	}
+}
+
+void GDF2::readGdfEventTable(DataModel* dataModel)
+{
+	seekFile(startOfEventTable, true);
+
+	uint8_t eventTableMode;
+	readFile(&eventTableMode);
+
+	uint8_t nev[3];
+	readFile(nev, 3);
+	if (isLittleEndian == false)
+	{
+		changeEndianness(reinterpret_cast<char*>(nev), 3);
+	}
+	int numberOfEvents = nev[0] + nev[1]*256 + nev[2]*256*256;
+
+	seekFile(4);
+
+	if (numberOfEvents == 0)
+	{
+		return;
+	}
+
+	AbstractEventTable* defaultEvents = dataModel->montageTable->eventTable(0);
+	defaultEvents->insertRows(0, numberOfEvents);
+
+	for (int i = 0; i < numberOfEvents; ++i)
+	{
+		uint32_t position;
+		readFile(&position);
+		int tmp = position - 1;
+		defaultEvents->row(i).position = tmp;
+	}
+
+	set<int> eventTypesUsed;
+
+	for (int i = 0; i < numberOfEvents; ++i)
+	{
+		uint16_t type;
+		readFile(&type);
+		eventTypesUsed.insert(type);
+		defaultEvents->row(i).type = type;
+	}
+
+	for (int i = 0; i < numberOfEvents; ++i)
+	{
+		int type = defaultEvents->row(i).type;
+		type = static_cast<int>(distance(eventTypesUsed.begin(), eventTypesUsed.find(type)));
+		defaultEvents->row(i).type = type;
+	}
+
+	if (eventTableMode & 0x02)
+	{
+		for (int i = 0; i < numberOfEvents; ++i)
+		{
+			uint16_t channel;
+			readFile(&channel);
+			int tmp = channel - 1;
+
+			if (tmp >= static_cast<int>(getChannelCount()))
+				tmp = -1;
+
+			defaultEvents->row(i).channel = tmp;
+		}
+
+		for (int i = 0; i < numberOfEvents; ++i)
+		{
+			uint32_t duration;
+			readFile(&duration);
+			defaultEvents->row(i).duration = duration;
+		}
+	}
+
+	// Add all event types used in the gdf event table.
+	AbstractEventTypeTable* ett = dataModel->eventTypeTable;
+
+	for (const auto& e : eventTypesUsed)
+	{
+		int row = ett->rowCount();
+		ett->insertRows(row);
+
+		ett->row(row).id = e;
+		ett->row(row).name = "Type " + to_string(e);
+	}
+}
+
+void GDF2::fillDefaultMontage(DataModel* dataModel)
+{
+	dataModel->montageTable->insertRows(0);
+
+	assert(getChannelCount() > 0);
+
+	AbstractTrackTable* defaultTracks = dataModel->montageTable->trackTable(0);
+	defaultTracks->insertRows(0, getChannelCount());
+
+	for (int i = 0; i < defaultTracks->rowCount(); ++i)
+	{
+		defaultTracks->row(i).label = vh.label[i];
 	}
 }
 

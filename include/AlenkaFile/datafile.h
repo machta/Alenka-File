@@ -1,17 +1,14 @@
 #ifndef ALENKAFILE_DATAFILE_H
 #define ALENKAFILE_DATAFILE_H
 
+#include "AlenkaFile/abstractdatamodel.h"
+
 #include <cstdint>
 #include <string>
 #include <vector>
 
 // TODO: add a public interface for access to the headers
 // TODO: upgrade some of the asserts to exceptions
-
-namespace pugi
-{
-class xml_document;
-}
 
 namespace AlenkaFile
 {
@@ -71,7 +68,7 @@ public:
 	 *
 	 * @param infoFile [out]
 	 */
-	virtual void save(pugi::xml_document* const infoFile);
+	virtual void save(DataModel* dataModel);
 
 	/**
 	 * @brief Loads the information from the .info file.
@@ -84,7 +81,7 @@ public:
 	 * An empty montage is always created.???
 	 * @param infoFile [in]
 	 */
-	virtual bool load(pugi::xml_document* infoFile);
+	virtual bool load(DataModel* dataModel);
 
 	/**
 	 * @brief Reads signal data specified by the sample range.

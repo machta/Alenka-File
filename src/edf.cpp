@@ -69,14 +69,14 @@ time_t EDF::getStartDate(int timeZone) const
 	return mktime(&time) - timeZone*60*60;
 }
 
-void EDF::save(pugi::xml_document* const infoFile)
+void EDF::save(DataModel* dataModel)
 {
-	DataFile::save(infoFile);
+	DataFile::save(dataModel);
 }
 
-bool EDF::load(pugi::xml_document* infoFile)
+bool EDF::load(DataModel* dataModel)
 {
-	if (DataFile::load(infoFile) == false)
+	if (DataFile::load(dataModel) == false)
 	{
 	}
 

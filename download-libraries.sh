@@ -47,6 +47,8 @@ else
 	mkdir -p boost/libs &&
 	mv $BOOST/boost boost &&
 	mv $BOOST/libs/program_options boost/libs &&
+	mv $BOOST/libs/system boost/libs &&
+	mv $BOOST/libs/filesystem boost/libs &&
 	rm -rf $BOOST &&
 	boost=OK || boost=fail
 

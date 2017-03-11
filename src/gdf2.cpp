@@ -10,6 +10,65 @@ using namespace AlenkaFile;
 namespace
 {
 
+const bool isLittleEndian = DataFile::testLittleEndian();
+
+template<typename T>
+void readFile(fstream& file, T* val, unsigned int elements = 1)
+{
+	file.read(reinterpret_cast<char*>(val), sizeof(T)*elements);
+
+	assert(file && "File read successfully.");
+	assert(static_cast<size_t>(file.gcount()) == sizeof(T)*elements && "Not all bytes were read from the file.");
+
+	if (isLittleEndian == false)
+	{
+		for (unsigned int i = 0; i < elements; ++i)
+			DataFile::changeEndianness(val + i);
+	}
+}
+
+void seekFile(fstream& file, int64_t offset, bool fromStart = false, bool isGet = true)
+{
+	if (isGet)
+	{
+		if (fromStart)
+			file.seekg(offset);
+		else
+			file.seekg(offset, file.cur);
+	}
+	else
+	{
+		if (fromStart)
+			file.seekp(offset);
+		else
+			file.seekp(offset, file.cur);
+	}
+}
+
+template<typename T>
+void writeFile(fstream& file, const T* val, unsigned int elements = 1)
+{
+	if (isLittleEndian == false)
+	{
+		for (unsigned int i = 0; i < elements; ++i)
+		{
+			T tmp = val[i];
+			DataFile::changeEndianness(&tmp);
+
+			file.write(reinterpret_cast<char*>(&tmp), sizeof(T));
+		}
+	}
+	else
+	{
+		file.write(reinterpret_cast<const char*>(val), sizeof(T)*elements);
+	}
+}
+
+std::streampos tellFile(fstream& file, bool isGet = true)
+{
+	return isGet ? file.tellg() : file.tellp();
+}
+
 void readRecord(fstream& file, char* rawBuffer, double* samples, int n, int sampleSize, const function<double (void*)>& convertor, bool isLittleEndian)
 {
 	file.read(rawBuffer, sampleSize*n);
@@ -17,9 +76,7 @@ void readRecord(fstream& file, char* rawBuffer, double* samples, int n, int samp
 	if (isLittleEndian == false)
 	{
 		for (int i = 0; i < n; ++i)
-		{
 			DataFile::changeEndianness(rawBuffer + i*sampleSize, sampleSize);
-		}
 	}
 
 	for (int i = 0; i < n; i++)
@@ -57,147 +114,141 @@ namespace AlenkaFile
 
 GDF2::GDF2(const string& filePath, bool uncalibrated) : DataFile(filePath)
 {
-	isLittleEndian = testLittleEndian();
-
 	file.exceptions(ifstream::failbit | ifstream::badbit);
 	file.open(filePath, file.in | file.out | file.binary);
 	assert(file.is_open() && "File GDF2 was not successfully opened.");
 
 	// Load fixed header.
-	seekFile(0, true);
+	seekFile(file, 0, true);
 
-	readFile(fh.versionID, 8);
+	readFile(file, fh.versionID, 8);
 	fh.versionID[8] = 0;
 	int major, minor;
 	sscanf(fh.versionID + 4, "%d.%d", &major, &minor);
 	version = minor + 100*major;
 
 	if (string(fh.versionID, 3) != "GDF" || major != 2)
-	{
 		throw runtime_error("Unrecognized file format.");
-	}
 
-	readFile(fh.patientID, 66);
+	readFile(file, fh.patientID, 66);
 	fh.patientID[66] = 0;
 
-	seekFile(10);
+	seekFile(file, 10);
 
-	readFile(&fh.drugs);
+	readFile(file, &fh.drugs);
 
-	readFile(&fh.weight);
+	readFile(file, &fh.weight);
 
-	readFile(&fh.height);
+	readFile(file, &fh.height);
 
-	readFile(&fh.patientDetails);
+	readFile(file, &fh.patientDetails);
 
-	readFile(fh.recordingID, 64);
+	readFile(file, fh.recordingID, 64);
 	fh.recordingID[64] = 0;
 
-	readFile(fh.recordingLocation, 4);
+	readFile(file, fh.recordingLocation, 4);
 
-	readFile(fh.startDate, 2);
+	readFile(file, fh.startDate, 2);
 
-	readFile(fh.birthday, 2);
+	readFile(file, fh.birthday, 2);
 
-	readFile(&fh.headerLength);
+	readFile(file, &fh.headerLength);
 
-	readFile(fh.ICD, 6);
+	readFile(file, fh.ICD, 6);
 
-	readFile(&fh.equipmentProviderID);
+	readFile(file, &fh.equipmentProviderID);
 
-	seekFile(6);
+	seekFile(file, 6);
 
-	readFile(fh.headsize, 3);
+	readFile(file, fh.headsize, 3);
 
-	readFile(fh.positionRE, 3);
+	readFile(file, fh.positionRE, 3);
 
-	readFile(fh.positionGE, 3);
+	readFile(file, fh.positionGE, 3);
 
-	readFile(&fh.numberOfDataRecords);
+	readFile(file, &fh.numberOfDataRecords);
 
 	if (fh.numberOfDataRecords < 0)
-	{
 		runtime_error("GDF file with unknown number of data records is not supported.");
-	}
 
 	double duration;
 	if (version > 220)
 	{
 		double* ptr = reinterpret_cast<double*>(fh.durationOfDataRecord);
-		readFile(ptr, 1);
+		readFile(file, ptr, 1);
 		duration = *ptr;
 	}
 	else
 	{
 		uint32_t* ptr = reinterpret_cast<uint32_t*>(fh.durationOfDataRecord);
-		readFile(ptr, 2);
+		readFile(file, ptr, 2);
 		duration = static_cast<double>(ptr[0])/static_cast<double>(ptr[1]);
 	}
 
-	readFile(&fh.numberOfChannels);
+	readFile(file, &fh.numberOfChannels);
 
 	// Load variable header.
-	seekFile(2);
-	assert(tellFile() == streampos(256) && "Make sure we read all of the fixed header.");
+	seekFile(file, 2);
+	assert(tellFile(file) == streampos(256) && "Make sure we read all of the fixed header.");
 
 	vh.label = new char[getChannelCount()][16 + 1];
 	for (unsigned int i = 0; i < getChannelCount(); ++i)
 	{
-		readFile(vh.label[i], 16);
+		readFile(file, vh.label[i], 16);
 		vh.label[i][16] = 0;
 	}
 
 	vh.typeOfSensor = new char[getChannelCount()][80 + 1];
 	for (unsigned int i = 0; i < getChannelCount(); ++i)
 	{
-		readFile(vh.typeOfSensor[i], 80);
+		readFile(file, vh.typeOfSensor[i], 80);
 		vh.typeOfSensor[i][80] = 0;
 	}
 
-	seekFile(6*getChannelCount());
+	seekFile(file, 6*getChannelCount());
 
 	vh.physicalDimensionCode = new uint16_t[getChannelCount()];
-	readFile(vh.physicalDimensionCode, getChannelCount());
+	readFile(file, vh.physicalDimensionCode, getChannelCount());
 
 	vh.physicalMinimum = new double[getChannelCount()];
-	readFile(vh.physicalMinimum, getChannelCount());
+	readFile(file, vh.physicalMinimum, getChannelCount());
 
 	vh.physicalMaximum = new double[getChannelCount()];
-	readFile(vh.physicalMaximum, getChannelCount());
+	readFile(file, vh.physicalMaximum, getChannelCount());
 
 	vh.digitalMinimum = new double[getChannelCount()];
-	readFile(vh.digitalMinimum, getChannelCount());
+	readFile(file, vh.digitalMinimum, getChannelCount());
 
 	vh.digitalMaximum = new double[getChannelCount()];
-	readFile(vh.digitalMaximum, getChannelCount());
+	readFile(file, vh.digitalMaximum, getChannelCount());
 
-	seekFile(64*getChannelCount());
+	seekFile(file, 64*getChannelCount());
 
 	vh.timeOffset = new float[getChannelCount()];
-	readFile(vh.timeOffset, getChannelCount());
+	readFile(file, vh.timeOffset, getChannelCount());
 
 	vh.lowpass = new float[getChannelCount()];
-	readFile(vh.lowpass, getChannelCount());
+	readFile(file, vh.lowpass, getChannelCount());
 
 	vh.highpass = new float[getChannelCount()];
-	readFile(vh.highpass, getChannelCount());
+	readFile(file, vh.highpass, getChannelCount());
 
 	vh.notch = new float[getChannelCount()];
-	readFile(vh.notch, getChannelCount());
+	readFile(file, vh.notch, getChannelCount());
 
 	vh.samplesPerRecord = new uint32_t[getChannelCount()];
-	readFile(vh.samplesPerRecord, getChannelCount());
+	readFile(file, vh.samplesPerRecord, getChannelCount());
 
 	vh.typeOfData = new uint32_t[getChannelCount()];
-	readFile(vh.typeOfData, getChannelCount());
+	readFile(file, vh.typeOfData, getChannelCount());
 
 	vh.sensorPosition = new float[getChannelCount()][3];
-	readFile(*vh.sensorPosition, 3*getChannelCount());
+	readFile(file, *vh.sensorPosition, 3*getChannelCount());
 
 	vh.sensorInfo = new char[getChannelCount()][20];
-	readFile(*vh.sensorInfo, 20*getChannelCount());
+	readFile(file, *vh.sensorInfo, 20*getChannelCount());
 
-	assert((tellFile() == streampos(-1) || tellFile() == streampos(256 + 256*getChannelCount())) && "Make sure we read all of the variable header.");
+	assert((tellFile(file) == streampos(-1) || tellFile(file) == streampos(256 + 256*getChannelCount())) && "Make sure we read all of the variable header.");
 
 	// Initialize other members.
 	samplesRecorded = vh.samplesPerRecord[0]*fh.numberOfDataRecords;
@@ -310,10 +361,10 @@ void GDF2::save(DataModel* dataModel)
 	}
 
 	// Write mode, NEV and SR.
-	seekFile(startOfEventTable, true);
+	seekFile(file, startOfEventTable, true);
 
 	uint8_t eventTableMode = 3;
-	writeFile(&eventTableMode);
+	writeFile(file, &eventTableMode);
 
 	int numberOfEvents = min(static_cast<int>(positions.size()), (1 << 24) - 1); // 2^24 - 1 is the maximum length of the gdf event table
 	uint8_t nev[3];
@@ -324,19 +375,17 @@ void GDF2::save(DataModel* dataModel)
 	tmp >>= 8;
 	nev[2] = static_cast<uint8_t>(tmp%256);
 	if (isLittleEndian == false)
-	{
 		changeEndianness(reinterpret_cast<char*>(nev), 3);
-	}
-	writeFile(nev, 3);
+	writeFile(file, nev, 3);
 
 	float sr = static_cast<float>(getSamplingFrequency());
-	writeFile(&sr);
+	writeFile(file, &sr);
 
 	// Write the events to the gdf event table.
-	writeFile(positions.data(), numberOfEvents);
-	writeFile(types.data(), numberOfEvents);
-	writeFile(channels.data(), numberOfEvents);
-	writeFile(durations.data(), numberOfEvents);
+	writeFile(file, positions.data(), numberOfEvents);
+	writeFile(file, types.data(), numberOfEvents);
+	writeFile(file, channels.data(), numberOfEvents);
+	writeFile(file, durations.data(), numberOfEvents);
 }
 
 bool GDF2::load(DataModel* dataModel)
@@ -362,7 +411,7 @@ void GDF2::readSignalFromFileFloatDouble(vector<T*> dataChannels, const uint64_t
 	int recordChannelBytes = samplesPerRecord*dataTypeSize;
 
 	uint64_t recordI = firstSample/samplesPerRecord;
-	seekFile(startOfData + recordI*recordChannelBytes*getChannelCount(), true);
+	seekFile(file, startOfData + recordI*recordChannelBytes*getChannelCount(), true);
 
 	int firstSampleToCopy = static_cast<int>(firstSample%samplesPerRecord);
 
@@ -393,25 +442,21 @@ void GDF2::readSignalFromFileFloatDouble(vector<T*> dataChannels, const uint64_t
 
 void GDF2::readGdfEventTable(DataModel* dataModel)
 {
-	seekFile(startOfEventTable, true);
+	seekFile(file, startOfEventTable, true);
 
 	uint8_t eventTableMode;
-	readFile(&eventTableMode);
+	readFile(file, &eventTableMode);
 
 	uint8_t nev[3];
-	readFile(nev, 3);
+	readFile(file, nev, 3);
 	if (isLittleEndian == false)
-	{
 		changeEndianness(reinterpret_cast<char*>(nev), 3);
-	}
 	int numberOfEvents = nev[0] + nev[1]*256 + nev[2]*256*256;
 
-	seekFile(4);
+	seekFile(file, 4);
 
 	if (numberOfEvents == 0)
-	{
 		return;
-	}
 
 	AbstractEventTable* defaultEvents = dataModel->montageTable->eventTable(0);
 	defaultEvents->insertRows(0, numberOfEvents);
@@ -419,7 +464,7 @@ void GDF2::readGdfEventTable(DataModel* dataModel)
 	for (int i = 0; i < numberOfEvents; ++i)
 	{
 		uint32_t position;
-		readFile(&position);
+		readFile(file, &position);
 		int tmp = position - 1;
 		defaultEvents->row(i).position = tmp;
 	}
@@ -429,7 +474,7 @@ void GDF2::readGdfEventTable(DataModel* dataModel)
 	for (int i = 0; i < numberOfEvents; ++i)
 	{
 		uint16_t type;
-		readFile(&type);
+		readFile(file, &type);
 		eventTypesUsed.insert(type);
 		defaultEvents->row(i).type = type;
 	}
@@ -446,7 +491,7 @@ void GDF2::readGdfEventTable(DataModel* dataModel)
 		for (int i = 0; i < numberOfEvents; ++i)
 		{
 			uint16_t channel;
-			readFile(&channel);
+			readFile(file, &channel);
 			int tmp = channel - 1;
 
 			if (tmp >= static_cast<int>(getChannelCount()))
@@ -458,7 +503,7 @@ void GDF2::readGdfEventTable(DataModel* dataModel)
 		for (int i = 0; i < numberOfEvents; ++i)
 		{
 			uint32_t duration;
-			readFile(&duration);
+			readFile(file, &duration);
 			defaultEvents->row(i).duration = duration;
 		}
 	}
@@ -486,9 +531,7 @@ void GDF2::fillDefaultMontage(DataModel* dataModel)
 	defaultTracks->insertRows(0, getChannelCount());
 
 	for (int i = 0; i < defaultTracks->rowCount(); ++i)
-	{
 		defaultTracks->row(i).label = vh.label[i];
-	}
 }
 
 } // namespace AlenkaFile

@@ -18,11 +18,13 @@ template<typename T>
 void fillWithZeroes(vector<T*>& dataChannels, uint64_t n)
 {
 	for (auto& e : dataChannels)
+	{
 		for (uint64_t i = 0; i < n; i++)
 		{
 			*e = 0;
 			e++;
 		}
+	}
 }
 
 template<typename T>
@@ -53,15 +55,11 @@ void readSignalFloatDouble(DataFile* file, T* data, int64_t firstSample, int64_t
 	}
 
 	if (lastInFile < lastSample)
-	{
 		fillWithZeroes(dataChannels, min(lastSample - lastInFile, len));
-	}
 
 #ifndef NDEBUG
 	for (unsigned int i = 0; i < file->getChannelCount(); i++)
-	{
 		assert(dataChannels.at(i) == data + (i + 1)*len && "Make sure that precisely the required number of samples was read.");
-	}
 #endif
 }
 
@@ -273,14 +271,6 @@ void loadXML(xml_node node, DataModel* dataModel)
 namespace AlenkaFile
 {
 
-DataFile::DataFile(const string& filePath) : filePath(filePath)
-{
-}
-
-DataFile::~DataFile()
-{
-}
-
 void DataFile::save(DataModel* dataModel)
 {
 	xml_document doc;
@@ -298,9 +288,7 @@ bool DataFile::load(DataModel* dataModel)
 	xml_parse_result res = doc.load_file(fp.c_str());
 
 	if (res)
-	{
 		loadXML(doc.child("document"), dataModel);
-	}
 
 	return res;
 }

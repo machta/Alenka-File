@@ -36,8 +36,8 @@ public:
 	 * @brief DataFile constructor.
 	 * @param filePath The file path of the primary file.
 	 */
-	DataFile(const std::string& filePath);
-	virtual ~DataFile();
+	DataFile(const std::string& filePath) : filePath(filePath) {}
+	virtual ~DataFile() {}
 
 	/**
 	 * @brief Returns the sampling frequency of the stored signal.

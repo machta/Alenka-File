@@ -1,17 +1,15 @@
+#ifndef ALENKAFILE_GDF2_H
+#define ALENKAFILE_GDF2_H
+
 #include <AlenkaFile/datafile.h>
 
 #include <cassert>
 #include <cmath>
 #include <fstream>
-#include <mutex>
-
-#ifndef ALENKAFILE_GDF2_H
-#define ALENKAFILE_GDF2_H
+#include <functional>
 
 namespace AlenkaFile
 {
-
-// ??? * All methods accessing the information stored in the file are thread-safe.
 
 /**
  * @brief A class implementing the GDF v2.51 file type.
@@ -61,13 +59,11 @@ private:
 	char* recordRawBuffer;
 	double* recordDoubleBuffer;
 
-	std::mutex fileMutex;
 	std::fstream file;
 	double samplingFrequency;
 	uint64_t samplesRecorded;
 	int64_t startOfData;
 	int64_t startOfEventTable;
-	bool isLittleEndian;
 	double* scale;
 	int dataTypeSize;
 	std::function<double (void*)> convertSampleToDouble;
@@ -128,73 +124,6 @@ private:
 		char (* sensorInfo)[20];
 	} vh;
 
-	template<typename T>
-	void readFile(T* val, unsigned int elements = 1)
-	{
-		file.read(reinterpret_cast<char*>(val), sizeof(T)*elements);
-
-		assert(file && "File read successfully.");
-		assert(static_cast<size_t>(file.gcount()) == sizeof(T)*elements && "Not all bytes were read from the file.");
-		
-		if (isLittleEndian == false)
-		{
-			for (unsigned int i = 0; i < elements; ++i)
-			{
-				changeEndianness(val + i);
-			}
-		}
-	}
-
-	void seekFile(int64_t offset, bool fromStart = false, bool isGet = true)
-	{
-		if (isGet)
-		{
-			if (fromStart)
-			{
-				file.seekg(offset);
-			}
-			else
-			{
-				file.seekg(offset, file.cur);
-			}
-		}
-		else
-		{
-			if (fromStart)
-			{
-				file.seekp(offset);
-			}
-			else
-			{
-				file.seekp(offset, file.cur);
-			}
-		}
-	}
-
-	template<typename T>
-	void writeFile(const T* val, unsigned int elements = 1)
-	{
-		if (isLittleEndian == false)
-		{
-			for (unsigned int i = 0; i < elements; ++i)
-			{
-				T tmp = val[i];
-				changeEndianness(&tmp);
-
-				file.write(reinterpret_cast<char*>(&tmp), sizeof(T));
-			}
-		}
-		else
-		{
-			file.write(reinterpret_cast<const char*>(val), sizeof(T)*elements);
-		}
-	}
-
-	std::streampos tellFile(bool isGet = true)
-	{
-		return isGet ? file.tellg() : file.tellp();
-	}
-	// TODO: Move these private functions to annonimous namespace.
 	template<typename T>
 	void readSignalFromFileFloatDouble(std::vector<T*> dataChannels, const uint64_t firstSample, const uint64_t lastSample);
 	void readGdfEventTable(DataModel* dataModel);

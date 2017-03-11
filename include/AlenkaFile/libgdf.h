@@ -1,7 +1,7 @@
-#include <AlenkaFile/datafile.h>
-
 #ifndef ALENKAFILE_LIBGDF_H
 #define ALENKAFILE_LIBGDF_H
+
+#include <AlenkaFile/datafile.h>
 
 namespace gdf
 {

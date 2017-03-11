@@ -1,5 +1,5 @@
-#ifndef DATAMODEL_H
-#define DATAMODEL_H
+#ifndef ALENKAFILE_DATAMODEL_H
+#define ALENKAFILE_DATAMODEL_H
 
 #include "AlenkaFile/abstractdatamodel.h"
 
@@ -66,4 +66,4 @@ private:
 
 } // namespace AlenkaFile
 
-#endif // DATAMODEL_H
+#endif // ALENKAFILE_DATAMODEL_H

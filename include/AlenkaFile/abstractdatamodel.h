@@ -1,5 +1,5 @@
-#ifndef ABSTRACTDATAMODEL_H
-#define ABSTRACTDATAMODEL_H
+#ifndef ALENKAFILE_ABSTRACTDATAMODEL_H
+#define ALENKAFILE_ABSTRACTDATAMODEL_H
 
 #include <string>
 #include <cstdio>
@@ -112,4 +112,4 @@ struct DataModel
 
 } // namespace AlenkaFile
 
-#endif // ABSTRACTDATAMODEL_H
+#endif // ALENKAFILE_ABSTRACTDATAMODEL_H

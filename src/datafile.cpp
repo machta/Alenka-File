@@ -118,7 +118,7 @@ void buildXML(xml_document& xml, DataModel* dataModel)
 	xml_node montageTable = document.append_child("montageTable");
 	for (int i = 0; i < dataModel->montageTable->rowCount(); i++)
 	{
-		Montage& m = dataModel->montageTable->row(i);
+		Montage m = dataModel->montageTable->row(i);
 		xml_node montage = montageTable.append_child("montage");
 
 		xml_attribute name = montage.append_attribute("name");
@@ -142,13 +142,15 @@ void loadTrack(xml_node node, AbstractTrackTable* tt)
 	{
 		int last = tt->rowCount();
 		tt->insertRows(last);
-		Track& t = tt->row(last);
+		Track t = tt->row(last);
 
 		t.label = node.attribute("label").as_string();
 		DataModel::str2color(node.attribute("color").as_string(), t.color);
 		t.amplitude = node.attribute("amplitude").as_double();
 		t.hidden = node.attribute("hidden").as_bool();
 		t.code = node.child("code").text().as_string();
+
+		tt->row(last, t);
 	}
 }
 
@@ -172,7 +174,7 @@ void loadEvent(xml_node node, AbstractEventTable* et)
 	{
 		int last = et->rowCount();
 		et->insertRows(last);
-		Event & e = et->row(last);
+		Event e = et->row(last);
 
 		e.label = node.attribute("label").as_string();
 		e.type = node.attribute("type").as_int();
@@ -180,6 +182,8 @@ void loadEvent(xml_node node, AbstractEventTable* et)
 		e.duration = node.attribute("duration").as_int();
 		e.channel = node.attribute("channel").as_int();
 		e.description = node.child("description").text().as_string();
+
+		et->row(last, e);
 	}
 }
 
@@ -203,10 +207,12 @@ void loadMontage(xml_node node, AbstractMontageTable* mt)
 	{
 		int last = mt->rowCount();
 		mt->insertRows(last);
-		Montage& m = mt->row(last);
+		Montage m = mt->row(last);
 
 		m.name = node.attribute("name").as_string();
 		m.save = node.attribute("save").as_bool();
+
+		mt->row(last, m);
 
 		loadTrackTable(node.child("trackTable"), mt->trackTable(last));
 		loadEventTable(node.child("eventTable"), mt->eventTable(last));
@@ -233,13 +239,15 @@ void loadEventType(xml_node node, AbstractEventTypeTable* ett)
 	{
 		int last = ett->rowCount();
 		ett->insertRows(last);
-		EventType& et = ett->row(last);
+		EventType et = ett->row(last);
 
 		et.id = node.attribute("id").as_int();
 		et.name = node.attribute("name").as_string();
 		et.opacity = node.attribute("opacity").as_double();
 		DataModel::str2color(node.attribute("color").as_string(), et.color);
 		et.hidden = node.attribute("hidden").as_bool();
+
+		ett->row(last, et);
 	}
 }
 

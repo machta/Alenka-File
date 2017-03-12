@@ -66,6 +66,7 @@ void writeFile(fstream& file, const T* val, unsigned int elements = 1)
 
 std::streampos tellFile(fstream& file, bool isGet = true)
 {
+	(void)tellFile;
 	return isGet ? file.tellg() : file.tellp();
 }
 
@@ -348,7 +349,7 @@ void GDF2::save(DataModel* dataModel)
 
 			for (int j = 0; j < et->rowCount(); ++j)
 			{
-				Event& e = et->row(j);
+				Event e = et->row(j);
 				if (e.channel >= -1 && e.type >= 0)
 				{
 					positions.push_back(e.position + 1);
@@ -465,8 +466,11 @@ void GDF2::readGdfEventTable(DataModel* dataModel)
 	{
 		uint32_t position;
 		readFile(file, &position);
-		int tmp = position - 1;
-		defaultEvents->row(i).position = tmp;
+
+		Event e = defaultEvents->row(i);
+		int tmp = position;
+		e.position = tmp - 1;
+		defaultEvents->row(i, e);
 	}
 
 	set<int> eventTypesUsed;
@@ -476,14 +480,20 @@ void GDF2::readGdfEventTable(DataModel* dataModel)
 		uint16_t type;
 		readFile(file, &type);
 		eventTypesUsed.insert(type);
-		defaultEvents->row(i).type = type;
+		
+		Event e = defaultEvents->row(i);
+		e.type = type;
+		defaultEvents->row(i, e);
 	}
 
 	for (int i = 0; i < numberOfEvents; ++i)
 	{
 		int type = defaultEvents->row(i).type;
 		type = static_cast<int>(distance(eventTypesUsed.begin(), eventTypesUsed.find(type)));
-		defaultEvents->row(i).type = type;
+
+		Event e = defaultEvents->row(i);
+		e.type = type;
+		defaultEvents->row(i, e);
 	}
 
 	if (eventTableMode & 0x02)
@@ -497,14 +507,19 @@ void GDF2::readGdfEventTable(DataModel* dataModel)
 			if (tmp >= static_cast<int>(getChannelCount()))
 				tmp = -1;
 
-			defaultEvents->row(i).channel = tmp;
+			Event e = defaultEvents->row(i);
+			e.channel = tmp;
+			defaultEvents->row(i, e);
 		}
 
 		for (int i = 0; i < numberOfEvents; ++i)
 		{
 			uint32_t duration;
 			readFile(file, &duration);
-			defaultEvents->row(i).duration = duration;
+
+			Event e = defaultEvents->row(i);
+			e.duration = duration;
+			defaultEvents->row(i, e);
 		}
 	}
 
@@ -516,8 +531,10 @@ void GDF2::readGdfEventTable(DataModel* dataModel)
 		int row = ett->rowCount();
 		ett->insertRows(row);
 
-		ett->row(row).id = e;
-		ett->row(row).name = "Type " + to_string(e);
+		EventType et = ett->row(row);
+		et.id = e;
+		et.name = "Type " + to_string(e);
+		ett->row(row, et);
 	}
 }
 
@@ -531,7 +548,11 @@ void GDF2::fillDefaultMontage(DataModel* dataModel)
 	defaultTracks->insertRows(0, getChannelCount());
 
 	for (int i = 0; i < defaultTracks->rowCount(); ++i)
-		defaultTracks->row(i).label = vh.label[i];
+	{
+		Track t = defaultTracks->row(i);
+		t.label = vh.label[i];
+		defaultTracks->row(i, t);
+	}
 }
 
 } // namespace AlenkaFile

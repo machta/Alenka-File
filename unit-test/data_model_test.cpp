@@ -31,18 +31,18 @@ void testDataModel(DataModel* dataModel)
 {
 	ASSERT_EQ(dataModel->montageTable->rowCount(), 2);
 
-	Montage& m1 = dataModel->montageTable->row(0);
+	Montage m1 = dataModel->montageTable->row(0);
 	EXPECT_EQ(m1.name, "Montage 0");
 	EXPECT_EQ(m1.save, true);
 
-	Montage& m2 = dataModel->montageTable->row(1);
+	Montage m2 = dataModel->montageTable->row(1);
 	EXPECT_EQ(m2.name, "Montage 1");
 	EXPECT_EQ(m2.save, false);
 
 	AbstractTrackTable* trackTable = dataModel->montageTable->trackTable(0);
 	ASSERT_EQ(trackTable->rowCount(), 2);
 
-	Track& t1 = trackTable->row(0);
+	Track t1 = trackTable->row(0);
 	EXPECT_EQ(t1.label, "Track 0");
 	EXPECT_EQ(t1.color[0], 0);
 	EXPECT_EQ(t1.color[1], 0);
@@ -51,7 +51,7 @@ void testDataModel(DataModel* dataModel)
 	EXPECT_EQ(t1.hidden, false);
 	EXPECT_EQ(t1.code, "out = in(0) + in(1);");
 
-	Track& t2 = trackTable->row(1);
+	Track t2 = trackTable->row(1);
 	EXPECT_EQ(t2.label, "Track 1");
 	EXPECT_EQ(t2.color[0], 0);
 	EXPECT_EQ(t2.color[1], 0);
@@ -63,7 +63,7 @@ void testDataModel(DataModel* dataModel)
 	AbstractEventTable* eventTable = dataModel->montageTable->eventTable(0);
 	ASSERT_EQ(eventTable->rowCount(), 2);
 
-	Event& e1 = eventTable->row(0);
+	Event e1 = eventTable->row(0);
 	EXPECT_EQ(e1.label, "Event 0");
 	EXPECT_EQ(e1.type, 0);
 	EXPECT_EQ(e1.position, 0);
@@ -71,7 +71,7 @@ void testDataModel(DataModel* dataModel)
 	EXPECT_EQ(e1.channel, 0);
 	EXPECT_EQ(e1.description, "bla bla");
 
-	Event& e2 = eventTable->row(1);
+	Event e2 = eventTable->row(1);
 	EXPECT_EQ(e2.label, "Event 1");
 	EXPECT_EQ(e2.type, 1);
 	EXPECT_EQ(e2.position, 2860);
@@ -82,7 +82,7 @@ void testDataModel(DataModel* dataModel)
 	trackTable = dataModel->montageTable->trackTable(1);
 	ASSERT_EQ(trackTable->rowCount(), 1);
 
-	Track& t3 = trackTable->row(0);
+	Track t3 = trackTable->row(0);
 	EXPECT_EQ(t3.label, "Track 0");
 	EXPECT_EQ(t3.color[0], 0);
 	EXPECT_EQ(t3.color[1], 0);
@@ -93,7 +93,7 @@ void testDataModel(DataModel* dataModel)
 
 	ASSERT_EQ(dataModel->eventTypeTable->rowCount(), 2);
 
-	EventType& et1 = dataModel->eventTypeTable->row(0);
+	EventType et1 = dataModel->eventTypeTable->row(0);
 	EXPECT_EQ(et1.id, 1);
 	EXPECT_EQ(et1.name, "Type 1");
 	EXPECT_EQ(et1.opacity, 0.25);
@@ -102,7 +102,7 @@ void testDataModel(DataModel* dataModel)
 	EXPECT_EQ(et1.color[2], 0);
 	EXPECT_EQ(et1.hidden, false);
 
-	EventType& et2 = dataModel->eventTypeTable->row(1);
+	EventType et2 = dataModel->eventTypeTable->row(1);
 	EXPECT_EQ(et2.id, 5);
 	EXPECT_EQ(et2.name, "Type 5");
 	EXPECT_EQ(et2.opacity, 0.5);
@@ -120,76 +120,85 @@ DataModel* makeDataModel()
 
 	dataModel->montageTable->insertRows(0, 2);
 
-	Montage& m1 = dataModel->montageTable->row(0);
+	Montage m1 = dataModel->montageTable->row(0);
 	m1.name = "Montage 0";
 	m1.save = true;
+	dataModel->montageTable->row(0, m1);
 
-	Montage& m2 = dataModel->montageTable->row(1);
+	Montage m2 = dataModel->montageTable->row(1);
 	m2.name = "Montage 1";
 	m2.save = false;
+	dataModel->montageTable->row(1, m2);
 
 	AbstractTrackTable* trackTable = dataModel->montageTable->trackTable(0);
 	trackTable->insertRows(0, 2);
 
-	Track& t1 = trackTable->row(0);
+	Track t1 = trackTable->row(0);
 	t1.label = "Track 0";
 	t1.color[0] = t1.color[1] = t1.color[2] = 0;
 	t1.amplitude = 0.000001;
 	t1.hidden = false;
 	t1.code = "out = in(0) + in(1);";
+	trackTable->row(0, t1);
 
-	Track& t2 = trackTable->row(1);
+	Track t2 = trackTable->row(1);
 	t2.label = "Track 1";
 	t2.color[0] = t2.color[1] = t2.color[2] = 0;
 	t2.amplitude = 0.000001;
 	t2.hidden = false;
 	t2.code = "out = sum(0, 9);";
+	trackTable->row(1, t2);
 
 	AbstractEventTable* eventTable = dataModel->montageTable->eventTable(0);
 	eventTable->insertRows(0, 2);
 
-	Event& e1 = eventTable->row(0);
+	Event e1 = eventTable->row(0);
 	e1.label = "Event 0";
 	e1.type = 0;
 	e1.position = 0;
 	e1.duration = 200;
 	e1.channel = 0;
 	e1.description = "bla bla";
+	eventTable->row(0, e1);
 
-	Event& e2 = eventTable->row(1);
+	Event e2 = eventTable->row(1);
 	e2.label = "Event 1";
 	e2.type = 1;
 	e2.position = 2860;
 	e2.duration = 608;
 	e2.channel = -1;
+	eventTable->row(1, e2);
 
 	trackTable = dataModel->montageTable->trackTable(1);
 	trackTable->insertRows(0);
 
-	Track& t3 = trackTable->row(0);
+	Track t3 = trackTable->row(0);
 	t3.label = "Track 0";
 	t3.color[0] = t3.color[1] = t3.color[2] = 0;
 	t3.amplitude = 0.00003;
 	t3.hidden = false;
 	t3.code = "out = in(0);";
+	trackTable->row(0, t3);
 
 	dataModel->eventTypeTable->insertRows(0, 2);
 
-	EventType& et1 = dataModel->eventTypeTable->row(0);
+	EventType et1 = dataModel->eventTypeTable->row(0);
 	et1.id = 1;
 	et1.name = "Type 1";
 	et1.opacity = 0.25;
 	et1.color[0] = 255;
 	et1.color[1] = et1.color[2] = 0;
 	et1.hidden = false;
+	dataModel->eventTypeTable->row(0, et1);
 
-	EventType& et2 = dataModel->eventTypeTable->row(1);
+	EventType et2 = dataModel->eventTypeTable->row(1);
 	et2.id = 5;
 	et2.name = "Type 5";
 	et2.opacity = 0.5;
 	et2.color[0] = et2.color[1] = 255;
 	et2.color[2] = 0;
 	et2.hidden = false;
+	dataModel->eventTypeTable->row(1, et2);
 
 	testDataModel(dataModel);
 	return dataModel;
@@ -199,7 +208,7 @@ void testDataModelPrimary(DataModel* dataModel)
 {
 	EXPECT_EQ(dataModel->montageTable->rowCount(), 1);
 
-	Montage& m1 = dataModel->montageTable->row(0);
+	Montage m1 = dataModel->montageTable->row(0);
 	EXPECT_EQ(m1.name, "Montage 0");
 	EXPECT_EQ(m1.save, false);
 
@@ -211,7 +220,7 @@ void testDataModelPrimary(DataModel* dataModel)
 
 	for (int i = 0; i < trackCount; i++)
 	{
-		Track& t = trackTable->row(i);
+		Track t = trackTable->row(i);
 		EXPECT_EQ(t.label.substr(0, labels[i].size()), labels[i]);
 		EXPECT_EQ(t.color[0], 0);
 		EXPECT_EQ(t.color[1], 0);
@@ -224,7 +233,7 @@ void testDataModelPrimary(DataModel* dataModel)
 	AbstractEventTable* eventTable = dataModel->montageTable->eventTable(0);
 	ASSERT_EQ(eventTable->rowCount(), 2);
 
-	Event& e1 = eventTable->row(0);
+	Event e1 = eventTable->row(0);
 	EXPECT_EQ(e1.label, "Event 0");
 	EXPECT_EQ(e1.type, 0);
 	EXPECT_EQ(e1.position, 0);
@@ -232,7 +241,7 @@ void testDataModelPrimary(DataModel* dataModel)
 	EXPECT_EQ(e1.channel, 0);
 	EXPECT_EQ(e1.description, "");
 
-	Event& e2 = eventTable->row(1);
+	Event e2 = eventTable->row(1);
 	EXPECT_EQ(e2.label, "Event 1");
 	EXPECT_EQ(e2.type, 1);
 	EXPECT_EQ(e2.position, 2860);
@@ -242,7 +251,7 @@ void testDataModelPrimary(DataModel* dataModel)
 
 	ASSERT_EQ(dataModel->eventTypeTable->rowCount(), 2);
 
-	EventType& et1 = dataModel->eventTypeTable->row(0);
+	EventType et1 = dataModel->eventTypeTable->row(0);
 	EXPECT_EQ(et1.id, 1);
 	EXPECT_EQ(et1.name, "Type 1");
 	EXPECT_EQ(et1.opacity, 0.25);
@@ -251,7 +260,7 @@ void testDataModelPrimary(DataModel* dataModel)
 	EXPECT_EQ(et1.color[2], 0);
 	EXPECT_EQ(et1.hidden, false);
 
-	EventType& et2 = dataModel->eventTypeTable->row(1);
+	EventType et2 = dataModel->eventTypeTable->row(1);
 	EXPECT_EQ(et2.id, 5);
 	EXPECT_EQ(et2.name, "Type 5");
 	EXPECT_EQ(et2.opacity, 0.25);

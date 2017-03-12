@@ -15,7 +15,8 @@ public:
 	virtual int rowCount() override { return static_cast<int>(table.size()); }
 	virtual void insertRows(int row, int count) override;
 	virtual void removeRows(int row, int count) override;
-	virtual EventType& row(int i) override { return table[i]; }
+	virtual EventType row(int i) const override { return table[i]; }
+	virtual void row(int i, const EventType& value) override { table[i] = value; }
 
 private:
 	std::vector<EventType> table;
@@ -28,7 +29,8 @@ public:
 	virtual int rowCount() override { return static_cast<int>(table.size()); }
 	virtual void insertRows(int row, int count = 1) override;
 	virtual void removeRows(int row, int count = 1) override;
-	virtual Event& row(int i) override { return table[i]; }
+	virtual Event row(int i) const override { return table[i]; }
+	virtual void row(int i, const Event& value) override { table[i] = value; }
 
 private:
 	std::vector<Event> table;
@@ -41,7 +43,8 @@ public:
 	virtual int rowCount() override { return static_cast<int>(table.size()); }
 	virtual void insertRows(int row, int count = 1) override;
 	virtual void removeRows(int row, int count = 1) override;
-	virtual Track& row(int i) override { return table[i]; }
+	virtual Track row(int i) const override { return table[i]; }
+	virtual void row(int i, const Track& value) override { table[i] = value; }
 
 private:
 	std::vector<Track> table;
@@ -54,7 +57,8 @@ public:
 	virtual int rowCount() override { return static_cast<int>(table.size()); }
 	virtual void insertRows(int row, int count = 1) override;
 	virtual void removeRows(int row, int count = 1) override;
-	virtual Montage& row(int i) override { return table[i]; }
+	virtual Montage row(int i) const override { return table[i]; }
+	virtual void row(int i, const Montage& value) override { table[i] = value; }
 	virtual AbstractEventTable* eventTable(int i) override;
 	virtual AbstractTrackTable* trackTable(int i) override;
 

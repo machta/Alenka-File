@@ -61,6 +61,8 @@ public:
 	virtual void row(int i, const Montage& value) override { table[i] = value; }
 	virtual AbstractEventTable* eventTable(int i) override;
 	virtual AbstractTrackTable* trackTable(int i) override;
+	virtual AbstractEventTable* makeEventTable() override { return new EventTable(); }
+	virtual AbstractTrackTable* makeTrackTable() override { return new TrackTable(); }
 
 private:
 	std::vector<Montage> table;

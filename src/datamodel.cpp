@@ -107,8 +107,8 @@ void MontageTable::insertRows(int row, int count)
 	tTable.insert(tTable.begin() + row, count, nullptr);
 	for (int i = 0; i < count; i++)
 	{
-		eTable[row + i] = new EventTable();
-		tTable[row + i] = new TrackTable();
+		eTable[row + i] = makeEventTable();
+		tTable[row + i] = makeTrackTable();
 	}
 }
 

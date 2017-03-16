@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <cassert>
 
 // TODO: add a public interface for access to the headers
 // TODO: upgrade some of the asserts to exceptions
@@ -68,7 +69,7 @@ public:
 	 *
 	 * @param infoFile [out]
 	 */
-	virtual void save(DataModel* dataModel);
+	virtual void save();
 
 	/**
 	 * @brief Loads the information from the .info file.
@@ -81,7 +82,7 @@ public:
 	 * An empty montage is always created.???
 	 * @param infoFile [in]
 	 */
-	virtual bool load(DataModel* dataModel);
+	virtual bool load();
 
 	/**
 	 * @brief Reads signal data specified by the sample range.
@@ -115,6 +116,16 @@ public:
 	 * \overload virtual void readSignalFromFile(std::vector<double*> dataChannels, uint64_t firstSample, uint64_t lastSample) = 0
 	 */
 	virtual void readSignalFromFile(std::vector<double*> dataChannels, uint64_t firstSample, uint64_t lastSample) = 0;
+
+	DataModel getDataModel() const
+	{
+		assert(dataModel.montageTable && dataModel.eventTypeTable);
+		return dataModel;
+	}
+	void setDataModel(DataModel dataModel)
+	{
+		this->dataModel = dataModel;
+	}
 
 	/**
 	 * @brief Tests endianness.
@@ -152,6 +163,7 @@ public:
 
 private:
 	std::string filePath;
+	DataModel dataModel;
 };
 
 } // namespace AlenkaFile

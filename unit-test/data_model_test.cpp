@@ -278,9 +278,11 @@ void testMontFile(const string& fp, const string& suffix)
 	{
 		T file(p.string());
 
-		DataModel* dataModel = makeDataModel();
+		DataModel* dataModel = makeDataModel();		
+		file.setDataModel(*dataModel);
 
-		file.save(dataModel);
+		file.save();
+
 		delete dataModel;
 	}
 
@@ -289,8 +291,9 @@ void testMontFile(const string& fp, const string& suffix)
 	DataModel dataModel;
 	dataModel.eventTypeTable = new EventTypeTable();
 	dataModel.montageTable = new MontageTable();
+	file.setDataModel(dataModel);
 
-	file.load(&dataModel);
+	file.load();
 	testDataModel(&dataModel);
 
 	remove(p);
@@ -322,8 +325,10 @@ TEST(data_model_test, test_event_GDF2)
 		GDF2 file(p.string());
 
 		DataModel* dataModel = makeDataModel();
+		file.setDataModel(*dataModel);
 
-		file.save(dataModel);
+		file.save();
+
 		delete dataModel;
 	}
 
@@ -334,8 +339,9 @@ TEST(data_model_test, test_event_GDF2)
 	DataModel dataModel;
 	dataModel.eventTypeTable = new EventTypeTable();
 	dataModel.montageTable = new MontageTable();
+	file.setDataModel(dataModel);
 
-	file.load(&dataModel);
+	file.load();
 	testDataModelPrimary(&dataModel);
 
 	remove(p);

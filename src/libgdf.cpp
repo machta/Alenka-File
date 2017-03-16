@@ -53,14 +53,14 @@ time_t LibGDF::getStartDate(int) const
 	return static_cast<time_t>(round(seconds));
 }
 
-void LibGDF::save(DataModel* dataModel)
+void LibGDF::save()
 {
-	DataFile::save(dataModel);
+	DataFile::save();
 }
 
-bool LibGDF::load(DataModel* dataModel)
+bool LibGDF::load()
 {
-	if (DataFile::load(dataModel) == false)
+	if (DataFile::load() == false)
 	{
 	}
 

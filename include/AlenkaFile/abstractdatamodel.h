@@ -85,6 +85,8 @@ public:
 	virtual void row(int i, const Montage& value) = 0;
 	virtual AbstractEventTable* eventTable(int i) = 0;
 	virtual AbstractTrackTable* trackTable(int i) = 0;
+
+protected:
 	virtual AbstractEventTable* makeEventTable() = 0;
 	virtual AbstractTrackTable* makeTrackTable() = 0;
 };

@@ -279,24 +279,24 @@ void loadXML(xml_node node, DataModel* dataModel)
 namespace AlenkaFile
 {
 
-void DataFile::save(DataModel* dataModel)
+void DataFile::save()
 {
 	xml_document doc;
-	buildXML(doc, dataModel);
+	buildXML(doc, &dataModel);
 
 	string fp = filePath + ".mont";
 	bool res = doc.save_file(fp.c_str());
 	assert(res && "Assure the .mont file was written successfully."); (void)res;
 }
 
-bool DataFile::load(DataModel* dataModel)
+bool DataFile::load()
 {
 	string fp = filePath + ".mont";
 	xml_document doc;
 	xml_parse_result res = doc.load_file(fp.c_str());
 
 	if (res)
-		loadXML(doc.child("document"), dataModel);
+		loadXML(doc.child("document"), &dataModel);
 
 	return res;
 }

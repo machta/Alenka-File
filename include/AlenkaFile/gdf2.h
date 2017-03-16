@@ -44,8 +44,8 @@ public:
 		double seconds = (fh.startDate[1] - 719529 + fractionOfDay)*24*60*60;
 		return static_cast<time_t>(round(seconds));
 	}
-	virtual void save(DataModel* dataModel) override;
-	virtual bool load(DataModel* dataModel) override;
+	virtual void save() override;
+	virtual bool load() override;
 	virtual void readSignalFromFile(std::vector<float*> dataChannels, uint64_t firstSample, uint64_t lastSample) override
 	{
 		readSignalFromFileFloatDouble(dataChannels, firstSample, lastSample);
@@ -126,8 +126,8 @@ private:
 
 	template<typename T>
 	void readSignalFromFileFloatDouble(std::vector<T*> dataChannels, const uint64_t firstSample, const uint64_t lastSample);
-	void readGdfEventTable(DataModel* dataModel);
-	void fillDefaultMontage(DataModel* dataModel);
+	void readGdfEventTable();
+	void fillDefaultMontage();
 };
 
 } // namespace AlenkaFile

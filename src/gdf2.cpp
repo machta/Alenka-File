@@ -331,9 +331,9 @@ GDF2::~GDF2()
 	delete[] vh.sensorInfo;
 }
 
-void GDF2::save(DataModel* dataModel)
+void GDF2::save()
 {
-	DataFile::save(dataModel);
+	DataFile::save();
 
 	// Collect events from montages marked 'save'.
 	vector<uint32_t> positions;
@@ -341,11 +341,11 @@ void GDF2::save(DataModel* dataModel)
 	vector<uint16_t> channels;
 	vector<uint32_t> durations;
 
-	for (int i = 0; i < dataModel->montageTable->rowCount(); ++i)
+	for (int i = 0; i < getDataModel().montageTable->rowCount(); ++i)
 	{
-		if (dataModel->montageTable->row(i).save)
+		if (getDataModel().montageTable->row(i).save)
 		{
-			AbstractEventTable* et = dataModel->montageTable->eventTable(i);
+			AbstractEventTable* et = getDataModel().montageTable->eventTable(i);
 
 			for (int j = 0; j < et->rowCount(); ++j)
 			{
@@ -353,7 +353,7 @@ void GDF2::save(DataModel* dataModel)
 				if (e.channel >= -1 && e.type >= 0)
 				{
 					positions.push_back(e.position + 1);
-					types.push_back(static_cast<uint16_t>(dataModel->eventTypeTable->row(e.type).id));
+					types.push_back(static_cast<uint16_t>(getDataModel().eventTypeTable->row(e.type).id));
 					channels.push_back(static_cast<uint16_t>(e.channel + 1)); // TODO: Make a warning if these values cannot be converted properly.
 					durations.push_back(e.duration);
 				}
@@ -389,13 +389,12 @@ void GDF2::save(DataModel* dataModel)
 	writeFile(file, durations.data(), numberOfEvents);
 }
 
-bool GDF2::load(DataModel* dataModel)
+bool GDF2::load()
 {
-	if (DataFile::load(dataModel) == false)
+	if (DataFile::load() == false)
 	{
-		fillDefaultMontage(dataModel);
-
-		readGdfEventTable(dataModel);
+		fillDefaultMontage();
+		readGdfEventTable();
 	}
 
 	return true;
@@ -441,7 +440,7 @@ void GDF2::readSignalFromFileFloatDouble(vector<T*> dataChannels, const uint64_t
 	}
 }
 
-void GDF2::readGdfEventTable(DataModel* dataModel)
+void GDF2::readGdfEventTable()
 {
 	seekFile(file, startOfEventTable, true);
 
@@ -459,7 +458,7 @@ void GDF2::readGdfEventTable(DataModel* dataModel)
 	if (numberOfEvents == 0)
 		return;
 
-	AbstractEventTable* defaultEvents = dataModel->montageTable->eventTable(0);
+	AbstractEventTable* defaultEvents = getDataModel().montageTable->eventTable(0);
 	defaultEvents->insertRows(0, numberOfEvents);
 
 	for (int i = 0; i < numberOfEvents; ++i)
@@ -524,7 +523,7 @@ void GDF2::readGdfEventTable(DataModel* dataModel)
 	}
 
 	// Add all event types used in the gdf event table.
-	AbstractEventTypeTable* ett = dataModel->eventTypeTable;
+	AbstractEventTypeTable* ett = getDataModel().eventTypeTable;
 
 	for (const auto& e : eventTypesUsed)
 	{
@@ -538,13 +537,13 @@ void GDF2::readGdfEventTable(DataModel* dataModel)
 	}
 }
 
-void GDF2::fillDefaultMontage(DataModel* dataModel)
+void GDF2::fillDefaultMontage()
 {
-	dataModel->montageTable->insertRows(0);
+	getDataModel().montageTable->insertRows(0);
 
 	assert(getChannelCount() > 0);
 
-	AbstractTrackTable* defaultTracks = dataModel->montageTable->trackTable(0);
+	AbstractTrackTable* defaultTracks = getDataModel().montageTable->trackTable(0);
 	defaultTracks->insertRows(0, getChannelCount());
 
 	for (int i = 0; i < defaultTracks->rowCount(); ++i)

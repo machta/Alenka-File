@@ -12,7 +12,7 @@ class EventTypeTable : public AbstractEventTypeTable
 {
 public:
 	virtual ~EventTypeTable() override {}
-	virtual int rowCount() override { return static_cast<int>(table.size()); }
+	virtual int rowCount() const override { return static_cast<int>(table.size()); }
 	virtual void insertRows(int row, int count) override;
 	virtual void removeRows(int row, int count) override;
 	virtual EventType row(int i) const override { return table[i]; }
@@ -26,7 +26,7 @@ class EventTable : public AbstractEventTable
 {
 public:
 	virtual ~EventTable() override {}
-	virtual int rowCount() override { return static_cast<int>(table.size()); }
+	virtual int rowCount() const override { return static_cast<int>(table.size()); }
 	virtual void insertRows(int row, int count = 1) override;
 	virtual void removeRows(int row, int count = 1) override;
 	virtual Event row(int i) const override { return table[i]; }
@@ -40,7 +40,7 @@ class TrackTable : public AbstractTrackTable
 {
 public:
 	virtual ~TrackTable() override {}
-	virtual int rowCount() override { return static_cast<int>(table.size()); }
+	virtual int rowCount() const override { return static_cast<int>(table.size()); }
 	virtual void insertRows(int row, int count = 1) override;
 	virtual void removeRows(int row, int count = 1) override;
 	virtual Track row(int i) const override { return table[i]; }
@@ -54,7 +54,7 @@ class MontageTable : public AbstractMontageTable
 {
 public:
 	virtual ~MontageTable() override;
-	virtual int rowCount() override { return static_cast<int>(table.size()); }
+	virtual int rowCount() const override { return static_cast<int>(table.size()); }
 	virtual void insertRows(int row, int count = 1) override;
 	virtual void removeRows(int row, int count = 1) override;
 	virtual Montage row(int i) const override { return table[i]; }

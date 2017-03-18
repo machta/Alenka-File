@@ -14,13 +14,18 @@ struct EventType
 	double opacity;
 	unsigned char color[3];
 	bool hidden;
+
+	enum class Index
+	{
+		id, name, opacity, color, hidden, size
+	};
 };
 
 class AbstractEventTypeTable
 {
 public:
 	virtual ~AbstractEventTypeTable() {}
-	virtual int rowCount() = 0;
+	virtual int rowCount() const = 0;
 	virtual void insertRows(int row, int count = 1) = 0;
 	virtual void removeRows(int row, int count = 1) = 0;
 	virtual EventType row(int i) const = 0;
@@ -35,13 +40,18 @@ struct Event
 	int duration;
 	int channel;
 	std::string description;
+
+	enum class Index
+	{
+		label, type, position, duration, channel, description, size
+	};
 };
 
 class AbstractEventTable
 {
 public:
 	virtual ~AbstractEventTable() {}
-	virtual int rowCount() = 0;
+	virtual int rowCount() const = 0;
 	virtual void insertRows(int row, int count = 1) = 0;
 	virtual void removeRows(int row, int count = 1) = 0;
 	virtual Event row(int i) const = 0;
@@ -55,13 +65,18 @@ struct Track
 	unsigned char color[3];
 	double amplitude;
 	bool hidden;
+
+	enum class Index
+	{
+		label, code, color, amplitude, hidden, size
+	};
 };
 
 class AbstractTrackTable
 {
 public:
 	virtual ~AbstractTrackTable() {}
-	virtual int rowCount() = 0;
+	virtual int rowCount() const = 0;
 	virtual void insertRows(int row, int count = 1) = 0;
 	virtual void removeRows(int row, int count = 1) = 0;
 	virtual Track row(int i) const = 0;
@@ -72,13 +87,18 @@ struct Montage
 {
 	std::string name;
 	bool save;
+
+	enum class Index
+	{
+		name, save, size
+	};
 };
 
 class AbstractMontageTable
 {
 public:
 	virtual ~AbstractMontageTable() {}
-	virtual int rowCount() = 0;
+	virtual int rowCount() const = 0;
 	virtual void insertRows(int row, int count = 1) = 0;
 	virtual void removeRows(int row, int count = 1) = 0;
 	virtual Montage row(int i) const = 0;

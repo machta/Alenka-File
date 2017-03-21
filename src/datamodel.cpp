@@ -26,11 +26,11 @@ void EventTypeTable::insertRows(int row, int count)
 	for (int i = 0; i < count; i++)
 	{
 		EventType et;
+
 		et.id = row + i;
 		et.name = "Type " + to_string(row + i);
 		et.opacity = 0.25;
-		et.color[0] = 255;
-		et.color[1] = et.color[2] = 0;
+		et.color[0] = 255; et.color[1] = et.color[2] = 0;
 		et.hidden = false;
 
 		table.insert(table.begin() + row + i, et);
@@ -47,6 +47,7 @@ void EventTable::insertRows(int row, int count)
 	for (int i = 0; i < count; i++)
 	{
 		Event e;
+
 		e.label = "Event " + to_string(row + i);
 		e.type = -1;
 		e.position = 0;
@@ -67,8 +68,9 @@ void TrackTable::insertRows(int row, int count)
 	for (int i = 0; i < count; i++)
 	{
 		Track t;
+
 		t.label = "Track " + to_string(row + i);
-		t.code = "out = in(" + to_string(i) + ");";
+		t.code = "out = in(" + to_string(row + i) + ");";
 		t.color[0] = t.color[1] = t.color[2] = 0;
 		t.amplitude = -0.000008;
 		t.hidden = false;
@@ -98,6 +100,7 @@ void MontageTable::insertRows(int row, int count)
 	for (int i = 0; i < count; i++)
 	{
 		Montage m;
+
 		m.name = "Montage " + to_string(row + i);
 		m.save = false;
 

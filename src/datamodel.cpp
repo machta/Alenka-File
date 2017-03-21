@@ -48,6 +48,7 @@ void EventTable::insertRows(int row, int count)
 	{
 		Event e;
 		e.label = "Event " + to_string(row + i);
+		e.type = -1;
 		e.position = 0;
 		e.duration = 1;
 		e.channel = -2;

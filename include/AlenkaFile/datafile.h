@@ -40,6 +40,11 @@ public:
 	DataFile(const std::string& filePath) : filePath(filePath) {}
 	virtual ~DataFile() {}
 
+	std::string getFilePath()
+	{
+		return filePath;
+	}
+
 	/**
 	 * @brief Returns the sampling frequency of the stored signal.
 	 */

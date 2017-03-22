@@ -111,15 +111,29 @@ protected:
 	virtual AbstractTrackTable* makeTrackTable() = 0;
 };
 
-struct DataModel
+class DataModel
 {
-	AbstractEventTypeTable* eventTypeTable;
-	AbstractMontageTable* montageTable;
+public:
+	DataModel(AbstractEventTypeTable* eventTypeTable, AbstractMontageTable* montageTable) :
+		ett(eventTypeTable), mt(montageTable) {}
+	~DataModel()
+	{
+		delete ett;
+		delete mt;
+	}
+
+	AbstractEventTypeTable* eventTypeTable()
+	{
+		return ett;
+	}
+	AbstractMontageTable* montageTable()
+	{
+		return mt;
+	}
 
 	static std::string color2str(const unsigned char color[3])
 	{
 		std::string str = "#";
-
 		for (int i = 0; i < 3; i++)
 		{
 			char tmp[3];
@@ -136,6 +150,26 @@ struct DataModel
 		color[1] = static_cast<unsigned char>(g);
 		color[2] = static_cast<unsigned char>(b);
 	}
+	template<class T>
+	static T array2color(unsigned char* c)
+	{
+		T color;
+		color.setRed(c[0]);
+		color.setGreen(c[1]);
+		color.setBlue(c[2]);
+		return color;
+	}
+	template<class T>
+	static void color2array(const T& color, unsigned char* c)
+	{
+		c[0] = color.red();
+		c[1] = color.green();
+		c[2] = color.blue();
+	}
+
+private:
+	AbstractEventTypeTable* ett;
+	AbstractMontageTable* mt;
 };
 
 } // namespace AlenkaFile

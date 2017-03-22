@@ -116,9 +116,9 @@ void buildXML(xml_document& xml, DataModel* dataModel)
 	xml_node document = xml.append_child("document");
 
 	xml_node montageTable = document.append_child("montageTable");
-	for (int i = 0; i < dataModel->montageTable->rowCount(); i++)
+	for (int i = 0; i < dataModel->montageTable()->rowCount(); i++)
 	{
-		Montage m = dataModel->montageTable->row(i);
+		Montage m = dataModel->montageTable()->row(i);
 		xml_node montage = montageTable.append_child("montage");
 
 		xml_attribute name = montage.append_attribute("name");
@@ -127,13 +127,13 @@ void buildXML(xml_document& xml, DataModel* dataModel)
 		xml_attribute save = montage.append_attribute("save");
 		save.set_value(m.save);
 
-		appendTrackTable(montage, dataModel->montageTable->trackTable(i));
-		appendEventTable(montage, dataModel->montageTable->eventTable(i));
+		appendTrackTable(montage, dataModel->montageTable()->trackTable(i));
+		appendEventTable(montage, dataModel->montageTable()->eventTable(i));
 	}
 
 	xml_node eventTypeTable = document.append_child("eventTypeTable");
-	for (int i = 0; i < dataModel->eventTypeTable->rowCount(); i++)
-		appendEventType(eventTypeTable, dataModel->eventTypeTable->row(i));
+	for (int i = 0; i < dataModel->eventTypeTable()->rowCount(); i++)
+		appendEventType(eventTypeTable, dataModel->eventTypeTable()->row(i));
 }
 
 void loadTrack(xml_node node, AbstractTrackTable* tt)
@@ -269,8 +269,8 @@ void loadXML(xml_node node, DataModel* dataModel)
 {
 	if (node)
 	{
-		loadMontageTable(node.child("montageTable"), dataModel->montageTable);
-		loadEventTypeTable(node.child("eventTypeTable"), dataModel->eventTypeTable);
+		loadMontageTable(node.child("montageTable"), dataModel->montageTable());
+		loadEventTypeTable(node.child("eventTypeTable"), dataModel->eventTypeTable());
 	}
 }
 
@@ -279,24 +279,22 @@ void loadXML(xml_node node, DataModel* dataModel)
 namespace AlenkaFile
 {
 
-void DataFile::save()
+void DataFile::save(const string& montFilePath)
 {
 	xml_document doc;
-	buildXML(doc, &dataModel);
+	buildXML(doc, dataModel);
 
-	string fp = filePath + ".mont";
-	bool res = doc.save_file(fp.c_str());
+	bool res = doc.save_file(montFilePath.c_str());
 	assert(res && "Assure the .mont file was written successfully."); (void)res;
 }
 
-bool DataFile::load()
+bool DataFile::load(const std::string& montFilePath)
 {
-	string fp = filePath + ".mont";
 	xml_document doc;
-	xml_parse_result res = doc.load_file(fp.c_str());
+	xml_parse_result res = doc.load_file(montFilePath.c_str());
 
 	if (res)
-		loadXML(doc.child("document"), &dataModel);
+		loadXML(doc.child("document"), dataModel);
 
 	return res;
 }

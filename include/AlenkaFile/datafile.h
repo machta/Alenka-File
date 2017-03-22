@@ -74,7 +74,11 @@ public:
 	 *
 	 * @param infoFile [out]
 	 */
-	virtual void save();
+	virtual void save(const std::string& montFilePath);
+	virtual void save()
+	{
+		save(filePath + ".mont");
+	}
 
 	/**
 	 * @brief Loads the information from the .info file.
@@ -87,7 +91,11 @@ public:
 	 * An empty montage is always created.???
 	 * @param infoFile [in]
 	 */
-	virtual bool load();
+	virtual bool load(const std::string& montFilePath);
+	virtual bool load()
+	{
+		return load(filePath + ".mont");
+	}
 
 	/**
 	 * @brief Reads signal data specified by the sample range.
@@ -122,12 +130,12 @@ public:
 	 */
 	virtual void readSignalFromFile(std::vector<double*> dataChannels, uint64_t firstSample, uint64_t lastSample) = 0;
 
-	DataModel getDataModel() const
+	DataModel* getDataModel() const
 	{
-		assert(dataModel.montageTable && dataModel.eventTypeTable);
+		assert(dataModel->montageTable() && dataModel->eventTypeTable());
 		return dataModel;
 	}
-	void setDataModel(DataModel dataModel)
+	void setDataModel(DataModel* dataModel)
 	{
 		this->dataModel = dataModel;
 	}
@@ -168,7 +176,7 @@ public:
 
 private:
 	std::string filePath;
-	DataModel dataModel;
+	DataModel* dataModel;
 };
 
 } // namespace AlenkaFile

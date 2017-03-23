@@ -37,10 +37,8 @@ public:
 		return samplesRecorded;
 	}
 	virtual time_t getStartDate(int timeZone = 0) const override;
-	virtual void save(const std::string& montFilePath) override;
-	using DataFile::save;
-	virtual bool load(const std::string& montFilePath) override;
-	using DataFile::load;
+	virtual void save() override;
+	virtual bool load() override;
 	virtual void readSignalFromFile(std::vector<float*> dataChannels, uint64_t firstSample, uint64_t lastSample) override
 	{
 		readSignalFromFileFloatDouble(dataChannels, firstSample, lastSample);

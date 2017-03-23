@@ -53,22 +53,18 @@ time_t LibGDF::getStartDate(int) const
 	return static_cast<time_t>(round(seconds));
 }
 
-void LibGDF::save(const string& montFilePath)
+void LibGDF::save()
 {
-	DataFile::save(montFilePath);
+	DataFile::save();
 }
 
-bool LibGDF::load(const string& montFilePath)
+bool LibGDF::load()
 {
-	if (DataFile::load(montFilePath) == false)
-	{
-	}
-
-	return true;
+	return DataFile::load();
 }
 
 template<typename T>
-void LibGDF::readSignalFromFileFloatDouble(std::vector<T*> dataChannels, uint64_t firstSample, uint64_t lastSample)
+void LibGDF::readSignalFromFileFloatDouble(vector<T*> dataChannels, uint64_t firstSample, uint64_t lastSample)
 {
 	assert(firstSample <= lastSample && "Bad parameter order.");
 	assert(lastSample < getSamplesRecorded() && "Reading out of bounds.");

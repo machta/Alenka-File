@@ -64,7 +64,7 @@ void writeFile(fstream& file, const T* val, unsigned int elements = 1)
 	}
 }
 
-std::streampos tellFile(fstream& file, bool isGet = true)
+streampos tellFile(fstream& file, bool isGet = true)
 {
 	(void)tellFile;
 	return isGet ? file.tellg() : file.tellp();
@@ -331,9 +331,9 @@ GDF2::~GDF2()
 	delete[] vh.sensorInfo;
 }
 
-void GDF2::save(const string& montFilePath)
+void GDF2::save()
 {
-	DataFile::save(montFilePath);
+	DataFile::saveSecondaryFile();
 
 	// Collect events from montages marked 'save'.
 	vector<uint32_t> positions;
@@ -389,9 +389,9 @@ void GDF2::save(const string& montFilePath)
 	writeFile(file, durations.data(), numberOfEvents);
 }
 
-bool GDF2::load(const string& montFilePath)
+bool GDF2::load()
 {
-	if (DataFile::load(montFilePath) == false)
+	if (DataFile::loadSecondaryFile() == false)
 	{
 		fillDefaultMontage();
 		readGdfEventTable();

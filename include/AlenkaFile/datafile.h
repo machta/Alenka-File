@@ -74,10 +74,10 @@ public:
 	 *
 	 * @param infoFile [out]
 	 */
-	virtual void save(const std::string& montFilePath);
+	virtual void saveSecondaryFile(std::string montFilePath = "");
 	virtual void save()
 	{
-		save(filePath + ".mont");
+		saveSecondaryFile();
 	}
 
 	/**
@@ -91,11 +91,13 @@ public:
 	 * An empty montage is always created.???
 	 * @param infoFile [in]
 	 */
-	virtual bool load(const std::string& montFilePath);
+	virtual bool loadSecondaryFile(std::string montFilePath = "");
 	virtual bool load()
 	{
-		return load(filePath + ".mont");
+		loadSecondaryFile();
+		return true;
 	}
+	// TODO: Make sure load can be called repeatedly with the same results.
 
 	/**
 	 * @brief Reads signal data specified by the sample range.

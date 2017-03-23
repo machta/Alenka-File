@@ -69,22 +69,18 @@ time_t EDF::getStartDate(int timeZone) const
 	return mktime(&time) - timeZone*60*60;
 }
 
-void EDF::save(const string& montFilePath)
+void EDF::save()
 {
-	DataFile::save(montFilePath);
+	DataFile::save();
 }
 
-bool EDF::load(const string& montFilePath)
+bool EDF::load()
 {
-	if (DataFile::load(montFilePath) == false)
-	{
-	}
-
-	return true;
+	return DataFile::load();
 }
 
 template<typename T>
-void EDF::readSignalFromFileFloatDouble(std::vector<T*> dataChannels, uint64_t firstSample, uint64_t lastSample)
+void EDF::readSignalFromFileFloatDouble(vector<T*> dataChannels, uint64_t firstSample, uint64_t lastSample)
 {
 	assert(firstSample <= lastSample && "Bad parameter order.");
 	assert(lastSample < getSamplesRecorded() && "Reading out of bounds.");

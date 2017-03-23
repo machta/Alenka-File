@@ -279,8 +279,11 @@ void loadXML(xml_node node, DataModel* dataModel)
 namespace AlenkaFile
 {
 
-void DataFile::save(const string& montFilePath)
+void DataFile::saveSecondaryFile(string montFilePath)
 {
+	if (montFilePath == "")
+		montFilePath = filePath + ".mont";
+
 	xml_document doc;
 	buildXML(doc, dataModel);
 
@@ -288,8 +291,11 @@ void DataFile::save(const string& montFilePath)
 	assert(res && "Assure the .mont file was written successfully."); (void)res;
 }
 
-bool DataFile::load(const std::string& montFilePath)
+bool DataFile::loadSecondaryFile(string montFilePath)
 {
+	if (montFilePath == "")
+		montFilePath = filePath + ".mont";
+
 	xml_document doc;
 	xml_parse_result res = doc.load_file(montFilePath.c_str());
 

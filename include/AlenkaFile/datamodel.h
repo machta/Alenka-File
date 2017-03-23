@@ -59,8 +59,10 @@ public:
 	virtual void removeRows(int row, int count = 1) override;
 	virtual Montage row(int i) const override { return table[i]; }
 	virtual void row(int i, const Montage& value) override { table[i] = value; }
-	virtual AbstractEventTable* eventTable(int i) override;
-	virtual AbstractTrackTable* trackTable(int i) override;
+	virtual AbstractEventTable* eventTable(int i) override { return eTable[i]; }
+	virtual const AbstractEventTable* eventTable(int i) const override { return eTable[i]; }
+	virtual AbstractTrackTable* trackTable(int i) override { return tTable[i]; }
+	virtual const AbstractTrackTable* trackTable(int i) const override { return tTable[i]; }
 
 protected:
 	virtual AbstractEventTable* makeEventTable() override { return new EventTable(); }

@@ -1,5 +1,3 @@
-#include <AlenkaFile/datafile.h>
-
 #include "AlenkaFile/datamodel.h"
 
 #include <cassert>
@@ -127,16 +125,6 @@ void MontageTable::removeRows(int row, int count)
 	}
 	eraseVector(eTable, row, count);
 	eraseVector(tTable, row, count);
-}
-
-AbstractEventTable*MontageTable::eventTable(int i)
-{
-	return eTable[i];
-}
-
-AbstractTrackTable*MontageTable::trackTable(int i)
-{
-	return tTable[i];
 }
 
 } // namespace AlenkaFile

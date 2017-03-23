@@ -27,7 +27,7 @@ path copyToTmp(const string& pathName, const string& sufix)
 	return tmpPath;
 }
 
-void testDataModel(DataModel* dataModel)
+void testDataModel(const DataModel* dataModel)
 {
 	ASSERT_EQ(dataModel->montageTable()->rowCount(), 2);
 
@@ -39,7 +39,7 @@ void testDataModel(DataModel* dataModel)
 	EXPECT_EQ(m2.name, "Montage 1");
 	EXPECT_EQ(m2.save, false);
 
-	AbstractTrackTable* trackTable = dataModel->montageTable()->trackTable(0);
+	const AbstractTrackTable* trackTable = dataModel->montageTable()->trackTable(0);
 	ASSERT_EQ(trackTable->rowCount(), 2);
 
 	Track t1 = trackTable->row(0);
@@ -60,7 +60,7 @@ void testDataModel(DataModel* dataModel)
 	EXPECT_EQ(t2.hidden, false);
 	EXPECT_EQ(t2.code, "out = sum(0, 9);");
 
-	AbstractEventTable* eventTable = dataModel->montageTable()->eventTable(0);
+	const AbstractEventTable* eventTable = dataModel->montageTable()->eventTable(0);
 	ASSERT_EQ(eventTable->rowCount(), 2);
 
 	Event e1 = eventTable->row(0);
@@ -202,7 +202,7 @@ DataModel* makeDataModel()
 	return dataModel;
 }
 
-void testDataModelPrimary(DataModel* dataModel)
+void testDataModelPrimary(const DataModel* dataModel)
 {
 	EXPECT_EQ(dataModel->montageTable()->rowCount(), 1);
 
@@ -210,7 +210,7 @@ void testDataModelPrimary(DataModel* dataModel)
 	EXPECT_EQ(m1.name, "Montage 0");
 	EXPECT_EQ(m1.save, false);
 
-	AbstractTrackTable* trackTable = dataModel->montageTable()->trackTable(0);
+	const AbstractTrackTable* trackTable = dataModel->montageTable()->trackTable(0);
 	const int trackCount = 19;
 	ASSERT_EQ(trackTable->rowCount(), trackCount);
 
@@ -228,7 +228,7 @@ void testDataModelPrimary(DataModel* dataModel)
 		EXPECT_EQ(t.code, "out = in(" + to_string(i) + ");");
 	}
 
-	AbstractEventTable* eventTable = dataModel->montageTable()->eventTable(0);
+	const AbstractEventTable* eventTable = dataModel->montageTable()->eventTable(0);
 	ASSERT_EQ(eventTable->rowCount(), 2);
 
 	Event e1 = eventTable->row(0);

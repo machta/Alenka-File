@@ -104,7 +104,9 @@ public:
 	virtual Montage row(int i) const = 0;
 	virtual void row(int i, const Montage& value) = 0;
 	virtual AbstractEventTable* eventTable(int i) = 0;
+	virtual const AbstractEventTable* eventTable(int i) const = 0;
 	virtual AbstractTrackTable* trackTable(int i) = 0;
+	virtual const AbstractTrackTable* trackTable(int i) const = 0;
 
 protected:
 	virtual AbstractEventTable* makeEventTable() = 0;
@@ -122,14 +124,10 @@ public:
 		delete mt;
 	}
 
-	AbstractEventTypeTable* eventTypeTable()
-	{
-		return ett;
-	}
-	AbstractMontageTable* montageTable()
-	{
-		return mt;
-	}
+	AbstractEventTypeTable* eventTypeTable() { return ett; }
+	const AbstractEventTypeTable* eventTypeTable() const { return ett; }
+	AbstractMontageTable* montageTable() { return mt; }
+	const AbstractMontageTable* montageTable() const { return mt; }
 
 	static std::string color2str(const unsigned char color[3])
 	{

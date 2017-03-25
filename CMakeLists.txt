@@ -38,6 +38,7 @@ add_library(alenka-file STATIC ${SRC})
 
 if(MSVC)
 	set_source_files_properties(${SRC} PROPERTIES COMPILE_FLAGS "-W4")
+	add_definitions(-DBOOST_FILESYSTEM_NO_LIB -DBOOST_SYSTEM_NO_LIB) # This stops Microsoft's linker from needing the static libraries.
 else()
 	set_source_files_properties(${SRC} PROPERTIES COMPILE_FLAGS "-Wall -pedantic -Wextra -Wconversion")
 endif()

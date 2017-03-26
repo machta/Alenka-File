@@ -15,8 +15,6 @@ then
 	EDFlib=skipped
 else
 	git clone --depth 1 https://github.com/Teuniz/EDFlib.git &&
-	echo 'add_definitions(-D_LARGEFILE64_SOURCE -D_LARGEFILE_SOURCE)' > EDFlib/CMakeLists.txt &&
-	echo 'add_library(EDF edflib.c)' >> EDFlib/CMakeLists.txt &&
 	EDFlib=OK || EDFlib=fail
 fi
 

@@ -16,7 +16,6 @@ else()
 endif()
 
 # First build all the library dependencies.
-add_subdirectory(EDFlib)
 include_directories(EDFlib)
 
 set(BUILD_SHARED_LIBS false)
@@ -29,12 +28,15 @@ add_subdirectory(pugixml)
 include_directories(pugixml/src)
 
 # If you want to use this library, you need to link to these libraries.
-set(LIBS_TO_LINK_ALENKA_FILE alenka-file EDF GDF pugixml)
+set(LIBS_TO_LINK_ALENKA_FILE alenka-file GDF pugixml)
 set(LIBS_TO_LINK_ALENKA_FILE ${LIBS_TO_LINK_ALENKA_FILE} PARENT_SCOPE)
 
 # The library.
 file(GLOB SRC src/*)
-add_library(alenka-file STATIC ${SRC})
+file(GLOB SRC_BOOST_S boost/libs/system/src/*.cpp)
+file(GLOB SRC_BOOST_FS boost/libs/filesystem/src/*.cpp)
+
+add_library(alenka-file STATIC ${SRC} ${SRC_BOOST_S} ${SRC_BOOST_FS})
 
 if(MSVC)
 	set_source_files_properties(${SRC} PROPERTIES COMPILE_FLAGS "-W4")
@@ -51,5 +53,5 @@ endif()
 
 add_custom_target(install-alenka-file
 	COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/lib
-	COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:alenka-file> $<TARGET_FILE:EDF> $<TARGET_FILE:GDF> $<TARGET_FILE:pugixml> ${CMAKE_INSTALL_PREFIX}/lib
+	COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:alenka-file> $<TARGET_FILE:GDF> $<TARGET_FILE:pugixml> ${CMAKE_INSTALL_PREFIX}/lib
 	COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/include ${CMAKE_INSTALL_PREFIX}/include)

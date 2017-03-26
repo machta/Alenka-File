@@ -105,7 +105,7 @@ public:
 	 * The range can exceed the boundaries of the signal data stored in the file.
 	 * These extra samples are set to zero.
 	 *
-	 * The actual reading from the primary file is delegated to readSignalFromFile.
+	 * The actual reading from the primary file is delegated to readChannels.
 	 * @param data [out] The signal data is copied to this buffer.
 	 * @param firstSample The first sample to be read.
 	 * @param lastSample The last sample to be read.
@@ -125,12 +125,12 @@ public:
 	 * @param firstSample The first sample to be read.
 	 * @param lastSample The last sample to be read.
 	 */
-	virtual void readSignalFromFile(std::vector<float*> dataChannels, uint64_t firstSample, uint64_t lastSample) = 0;
+	virtual void readChannels(std::vector<float*> dataChannels, uint64_t firstSample, uint64_t lastSample) = 0;
 
 	/**
-	 * \overload virtual void readSignalFromFile(std::vector<double*> dataChannels, uint64_t firstSample, uint64_t lastSample) = 0
+	 * \overload virtual void readChannels(std::vector<double*> dataChannels, uint64_t firstSample, uint64_t lastSample) = 0
 	 */
-	virtual void readSignalFromFile(std::vector<double*> dataChannels, uint64_t firstSample, uint64_t lastSample) = 0;
+	virtual void readChannels(std::vector<double*> dataChannels, uint64_t firstSample, uint64_t lastSample) = 0;
 
 	DataModel* getDataModel() const
 	{

@@ -39,13 +39,13 @@ public:
 	virtual time_t getStartDate(int timeZone = 0) const override;
 	virtual void save() override;
 	virtual bool load() override;
-	virtual void readSignalFromFile(std::vector<float*> dataChannels, uint64_t firstSample, uint64_t lastSample) override
+	virtual void readChannels(std::vector<float*> dataChannels, uint64_t firstSample, uint64_t lastSample) override
 	{
-		readSignalFromFileFloatDouble(dataChannels, firstSample, lastSample);
+		readChannelsFloatDouble(dataChannels, firstSample, lastSample);
 	}
-	virtual void readSignalFromFile(std::vector<double*> dataChannels, uint64_t firstSample, uint64_t lastSample) override
+	virtual void readChannels(std::vector<double*> dataChannels, uint64_t firstSample, uint64_t lastSample) override
 	{
-		readSignalFromFileFloatDouble(dataChannels, firstSample, lastSample);
+		readChannelsFloatDouble(dataChannels, firstSample, lastSample);
 	}
 
 private:
@@ -57,7 +57,11 @@ private:
 	double* readChunkBuffer;
 
 	template<typename T>
-	void readSignalFromFileFloatDouble(std::vector<T*> dataChannels, uint64_t firstSample, uint64_t lastSample);
+	void readChannelsFloatDouble(std::vector<T*> dataChannels, uint64_t firstSample, uint64_t lastSample);
+	void openFile();
+	void fillDefaultMontage();
+	void loadEvents();
+	void addUsedEventTypes();
 };
 
 } // namespace AlenkaFile

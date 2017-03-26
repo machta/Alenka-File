@@ -46,13 +46,13 @@ public:
 	}
 	virtual void save() override;
 	virtual bool load() override;
-	virtual void readSignalFromFile(std::vector<float*> dataChannels, uint64_t firstSample, uint64_t lastSample) override
+	virtual void readChannels(std::vector<float*> dataChannels, uint64_t firstSample, uint64_t lastSample) override
 	{
-		readSignalFromFileFloatDouble(dataChannels, firstSample, lastSample);
+		readChannelsFloatDouble(dataChannels, firstSample, lastSample);
 	}
-	virtual void readSignalFromFile(std::vector<double*> dataChannels, uint64_t firstSample, uint64_t lastSample) override
+	virtual void readChannels(std::vector<double*> dataChannels, uint64_t firstSample, uint64_t lastSample) override
 	{
-		readSignalFromFileFloatDouble(dataChannels, firstSample, lastSample);
+		readChannelsFloatDouble(dataChannels, firstSample, lastSample);
 	}
 
 private:
@@ -125,7 +125,7 @@ private:
 	} vh;
 
 	template<typename T>
-	void readSignalFromFileFloatDouble(std::vector<T*> dataChannels, const uint64_t firstSample, const uint64_t lastSample);
+	void readChannelsFloatDouble(std::vector<T*> dataChannels, const uint64_t firstSample, const uint64_t lastSample);
 	void readGdfEventTable();
 	void fillDefaultMontage();
 };

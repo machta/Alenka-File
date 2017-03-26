@@ -39,11 +39,11 @@ public:
 	virtual time_t getStartDate(int timeZone = 0) const override;
 	virtual void save() override;
 	virtual bool load() override;
-	virtual void readSignalFromFile(std::vector<float*> dataChannels, uint64_t firstSample, uint64_t lastSample) override
+	virtual void readChannels(std::vector<float*> dataChannels, uint64_t firstSample, uint64_t lastSample) override
 	{
 		readSignalFromFileFloatDouble(dataChannels, firstSample, lastSample);
 	}
-	virtual void readSignalFromFile(std::vector<double*> dataChannels, uint64_t firstSample, uint64_t lastSample) override
+	virtual void readChannels(std::vector<double*> dataChannels, uint64_t firstSample, uint64_t lastSample) override
 	{
 		readSignalFromFileFloatDouble(dataChannels, firstSample, lastSample);
 	}

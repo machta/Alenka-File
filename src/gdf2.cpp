@@ -333,7 +333,7 @@ GDF2::~GDF2()
 
 void GDF2::save()
 {
-	DataFile::saveSecondaryFile();
+	saveSecondaryFile();
 
 	// Collect events from montages marked 'save'.
 	vector<uint32_t> positions;
@@ -341,15 +341,17 @@ void GDF2::save()
 	vector<uint16_t> channels;
 	vector<uint32_t> durations;
 
-	for (int i = 0; i < getDataModel()->montageTable()->rowCount(); ++i)
-	{
-		if (getDataModel()->montageTable()->row(i).save)
-		{
-			AbstractEventTable* et = getDataModel()->montageTable()->eventTable(i);
+	AbstractMontageTable* montageTable = getDataModel()->montageTable();
 
-			for (int j = 0; j < et->rowCount(); ++j)
+	for (int i = 0; i < montageTable->rowCount(); ++i)
+	{
+		if (montageTable->row(i).save)
+		{
+			AbstractEventTable* eventTable = montageTable->eventTable(i);
+
+			for (int j = 0; j < eventTable->rowCount(); ++j)
 			{
-				Event e = et->row(j);
+				Event e = eventTable->row(j);
 				if (e.channel >= -1 && e.type >= 0)
 				{
 					positions.push_back(e.position + 1);
@@ -401,7 +403,7 @@ bool GDF2::load()
 }
 
 template<typename T>
-void GDF2::readSignalFromFileFloatDouble(vector<T*> dataChannels, const uint64_t firstSample, const uint64_t lastSample)
+void GDF2::readChannelsFloatDouble(vector<T*> dataChannels, const uint64_t firstSample, const uint64_t lastSample)
 {
 	assert(firstSample <= lastSample && "Bad parameter order.");
 	assert(lastSample < getSamplesRecorded() && "Reading out of bounds.");

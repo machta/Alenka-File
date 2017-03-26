@@ -48,7 +48,7 @@ void readSignalFloatDouble(DataFile* file, T* data, int64_t firstSample, int64_t
 
 	if (firstSample <= lastInFile)
 	{
-		file->readSignalFromFile(dataChannels, firstSample, lastInFile);
+		file->readChannels(dataChannels, firstSample, lastInFile);
 
 		for (auto& e : dataChannels)
 			e += lastInFile - firstSample + 1;

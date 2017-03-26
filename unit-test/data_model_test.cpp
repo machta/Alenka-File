@@ -20,8 +20,7 @@ namespace
 
 path copyToTmp(const string& pathName, const string& sufix)
 {
-	path newName = unique_path("%%%%_%%%%_%%%%_%%%%." + sufix);
-	path tmpPath = temp_directory_path()/newName;
+	path tmpPath = unique_path(temp_directory_path().string() + "/%%%%_%%%%_%%%%_%%%%." + sufix);
 	copy_file(pathName, tmpPath);
 
 	return tmpPath;
@@ -64,7 +63,7 @@ void testDataModel(const DataModel* dataModel)
 	ASSERT_EQ(eventTable->rowCount(), 2);
 
 	Event e1 = eventTable->row(0);
-	EXPECT_EQ(e1.label, "Event 0");
+	EXPECT_EQ(e1.label, "Event 00");
 	EXPECT_EQ(e1.type, 0);
 	EXPECT_EQ(e1.position, 0);
 	EXPECT_EQ(e1.duration, 200);
@@ -72,7 +71,7 @@ void testDataModel(const DataModel* dataModel)
 	EXPECT_EQ(e1.description, "bla bla");
 
 	Event e2 = eventTable->row(1);
-	EXPECT_EQ(e2.label, "Event 1");
+	EXPECT_EQ(e2.label, "Event 01");
 	EXPECT_EQ(e2.type, 1);
 	EXPECT_EQ(e2.position, 2860);
 	EXPECT_EQ(e2.duration, 608);
@@ -151,7 +150,7 @@ DataModel* makeDataModel()
 	eventTable->insertRows(0, 2);
 
 	Event e1 = eventTable->row(0);
-	e1.label = "Event 0";
+	e1.label = "Event 00";
 	e1.type = 0;
 	e1.position = 0;
 	e1.duration = 200;
@@ -160,7 +159,7 @@ DataModel* makeDataModel()
 	eventTable->row(0, e1);
 
 	Event e2 = eventTable->row(1);
-	e2.label = "Event 1";
+	e2.label = "Event 01";
 	e2.type = 1;
 	e2.position = 2860;
 	e2.duration = 608;
@@ -202,7 +201,7 @@ DataModel* makeDataModel()
 	return dataModel;
 }
 
-void testDataModelPrimary(const DataModel* dataModel)
+void testMontages(const DataModel* dataModel)
 {
 	EXPECT_EQ(dataModel->montageTable()->rowCount(), 1);
 
@@ -227,26 +226,47 @@ void testDataModelPrimary(const DataModel* dataModel)
 		EXPECT_EQ(t.hidden, false);
 		EXPECT_EQ(t.code, "out = in(" + to_string(i) + ");");
 	}
+}
 
+void testEvents(const DataModel* dataModel, bool edf)
+{
 	const AbstractEventTable* eventTable = dataModel->montageTable()->eventTable(0);
 	ASSERT_EQ(eventTable->rowCount(), 2);
 
 	Event e1 = eventTable->row(0);
-	EXPECT_EQ(e1.label, "Event 0");
 	EXPECT_EQ(e1.type, 0);
 	EXPECT_EQ(e1.position, 0);
 	EXPECT_EQ(e1.duration, 200);
 	EXPECT_EQ(e1.channel, 0);
-	EXPECT_EQ(e1.description, "");
+	if (edf)
+	{
+		EXPECT_EQ(e1.label, "Event 00");
+		EXPECT_EQ(e1.description, "bla bla");
+	}
+	else
+	{
+		EXPECT_EQ(e1.label, "Event 0");
+		EXPECT_EQ(e1.description, "");
+	}
 
 	Event e2 = eventTable->row(1);
-	EXPECT_EQ(e2.label, "Event 1");
 	EXPECT_EQ(e2.type, 1);
-	EXPECT_EQ(e2.position, 2860);
 	EXPECT_EQ(e2.duration, 608);
+	EXPECT_EQ(e2.position, 2860);
 	EXPECT_EQ(e2.channel, -1);
 	EXPECT_EQ(e2.description, "");
+	if (edf)
+	{
+		EXPECT_EQ(e2.label, "Event 01");
+	}
+	else
+	{
+		EXPECT_EQ(e2.label, "Event 1");
+	}
+}
 
+void testTypes(const DataModel* dataModel)
+{
 	ASSERT_EQ(dataModel->eventTypeTable()->rowCount(), 2);
 
 	EventType et1 = dataModel->eventTypeTable()->row(0);
@@ -298,10 +318,42 @@ void testMontFile(const string& fp, const string& suffix)
 	remove(p.string() + ".mont");
 }
 
+template<class T>
+DataModel* testPrimary(const string& fp, const string& suffix)
+{
+	path p = copyToTmp(fp, suffix);
+
+	{
+		T file(p.string());
+
+		DataModel* dataModel = makeDataModel();
+		file.setDataModel(dataModel);
+
+		file.save();
+
+		delete dataModel;
+	}
+
+	remove(p.string() + ".mont");
+	DataModel* dataModel = new DataModel(new EventTypeTable(), new MontageTable());
+
+	{
+		T file(p.string());
+
+		file.setDataModel(dataModel);
+
+		file.load();
+	}
+
+	remove(p);
+	return dataModel;
+}
+
 } // namespace
 
 TEST(data_model_test, test_mont_GDF2)
 {
+	testMontFile<GDF2>("unit-test/data/gdf/gdf00.gdf", "gdf");
 	testMontFile<GDF2>("unit-test/data/gdf/gdf01.gdf", "gdf");
 }
 
@@ -315,34 +367,34 @@ TEST(data_model_test, test_mont_EDF)
 	testMontFile<EDF>("unit-test/data/edf/edf00.edf", "edf");
 }
 
-TEST(data_model_test, test_event_GDF2)
+TEST(data_model_test, test_primary_GDF200)
 {
-	path p = copyToTmp("unit-test/data/gdf/gdf00.gdf", "gdf");
+	DataModel* dataModel = testPrimary<GDF2>("unit-test/data/gdf/gdf00.gdf", "gdf");
 
-	{
-		GDF2 file(p.string());
+	testMontages(dataModel);
+	testEvents(dataModel, false);
+	testTypes(dataModel);
 
-		DataModel* dataModel = makeDataModel();
-		file.setDataModel(dataModel);
-
-		file.save();
-
-		delete dataModel;
-	}
-
-	remove(p.string() + ".mont");
-
-	{
-		GDF2 file(p.string());
-
-		DataModel dataModel(new EventTypeTable(), new MontageTable());
-		file.setDataModel(&dataModel);
-
-		file.load();
-		testDataModelPrimary(&dataModel);
-	}
-
-	remove(p);
+	delete dataModel;
 }
 
-// TODO: Save events to EDF and LibGDF.
+TEST(data_model_test, test_primary_GDF201)
+{
+	DataModel* dataModel = testPrimary<GDF2>("unit-test/data/gdf/gdf01.gdf", "gdf");
+
+	testEvents(dataModel, false);
+	testTypes(dataModel);
+
+	delete dataModel;
+}
+
+TEST(data_model_test, test_primary_EDF)
+{
+	DataModel* dataModel = testPrimary<EDF>("unit-test/data/edf/edf00.edf", "edf");
+
+	testEvents(dataModel, true);
+
+	delete dataModel;
+}
+
+// TODO: Save events to LibGDF.

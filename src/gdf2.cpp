@@ -352,7 +352,10 @@ void GDF2::save()
 			for (int j = 0; j < eventTable->rowCount(); ++j)
 			{
 				Event e = eventTable->row(j);
-				if (e.channel >= -1 && e.type >= 0)
+
+				// Skip events belonging to tracks greater thatn the number of channels in the file.
+				// TODO: Perhaps make a warning about this?
+				if (-1 <= e.channel && e.channel < getChannelCount() && e.type >= 0)
 				{
 					positions.push_back(e.position + 1);
 					types.push_back(static_cast<uint16_t>(getDataModel()->eventTypeTable()->row(e.type).id));

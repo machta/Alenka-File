@@ -158,7 +158,7 @@ void EDF::save()
 
 				// Skip events belonging to tracks greater thatn the number of channels in the file.
 				// TODO: Perhaps make a warning about this?
-				if (-1 <= e.channel && e.channel < getChannelCount() && e.type >= 0)
+				if (-1 <= e.channel && e.channel < static_cast<int>(getChannelCount()) && e.type >= 0)
 				{
 					long long onset = convertEventPosition(e.position, getSamplingFrequency());
 					long long duration = convertEventPosition(e.duration, getSamplingFrequency());

@@ -123,7 +123,7 @@ void EDF::save()
 	string tmpPathString = getFilePath() + ".%%%%.tmp";
 	boost::filesystem::path tmpPath = boost::filesystem::unique_path(tmpPathString);
 
-	int tmpFile = edfopen_file_writeonly(tmpPath.c_str(), edfhdr->filetype, numberOfChannels);
+	int tmpFile = edfopen_file_writeonly(tmpPath.string().c_str(), edfhdr->filetype, numberOfChannels);
 	if (tmpFile < 0)
 		cerr << "edfopen_file_writeonly error: " << tmpFile << endl;
 	assert(0 <= tmpFile  && "Temporary file was not successfully opened.");

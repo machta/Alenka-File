@@ -400,6 +400,7 @@ bool GDF2::load()
 	{
 		fillDefaultMontage();
 		readGdfEventTable();
+		return false;
 	}
 
 	return true;

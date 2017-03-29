@@ -191,6 +191,7 @@ bool EDF::load()
 	{
 		fillDefaultMontage();
 		loadEvents();
+		return false;
 	}
 
 	return true;

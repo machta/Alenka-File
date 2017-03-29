@@ -94,8 +94,7 @@ public:
 	virtual bool loadSecondaryFile(std::string montFilePath = "");
 	virtual bool load()
 	{
-		loadSecondaryFile();
-		return true;
+		return loadSecondaryFile();;
 	}
 	// TODO: Make sure load can be called repeatedly with the same results.
 

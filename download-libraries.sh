@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Usage: ./download-libraries.sh
+#
+# This script downloads all dependant libraries.
+# Use Git Bash or a similar tool to run this on Windows.
+
 if [ -d libgdf ]
 then
 	libgdf=skipped
@@ -67,3 +72,4 @@ echo "EDFlib                  $EDFlib"
 echo "pugixml                 $pugixml"
 echo "unit-test/googletest    $googletest"
 echo "boost                   $boost"
+

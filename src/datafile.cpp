@@ -71,7 +71,7 @@ void appendTrack(xml_node node, const Track& t)
 	track.append_attribute("color").set_value(DataModel::color2str(t.color).c_str());
 	track.append_attribute("amplitude").set_value(t.amplitude);
 	track.append_attribute("hidden").set_value(t.hidden);
-	track.append_child("code").append_child(pugi::node_pcdata).set_value(t.code.c_str());
+	track.append_child("code").append_child(node_pcdata).set_value(t.code.c_str());
 }
 
 void appendTrackTable(xml_node node, AbstractTrackTable* tt)
@@ -90,7 +90,7 @@ void appendEvent(xml_node node, const Event& e)
 	event.append_attribute("position").set_value(e.position);
 	event.append_attribute("duration").set_value(e.duration);
 	event.append_attribute("channel").set_value(e.channel);
-	event.append_child("description").append_child(pugi::node_pcdata).set_value(e.description.c_str());
+	event.append_child("description").append_child(node_pcdata).set_value(e.description.c_str());
 }
 
 void appendEventTable(xml_node node, AbstractEventTable* et)

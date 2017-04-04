@@ -316,6 +316,7 @@ void testMontFile(const string& fp, const string& suffix)
 
 	remove(p);
 	remove(p.string() + ".mont");
+	remove(p.string() + ".backup");
 }
 
 template<class T>
@@ -334,7 +335,7 @@ DataModel* testPrimary(const string& fp, const string& suffix)
 		delete dataModel;
 	}
 
-	remove(p.string() + ".mont");
+	remove(p.string() + ".mont");	
 	DataModel* dataModel = new DataModel(new EventTypeTable(), new MontageTable());
 
 	{
@@ -346,6 +347,7 @@ DataModel* testPrimary(const string& fp, const string& suffix)
 	}
 
 	remove(p);
+	remove(p.string() + ".backup");
 	return dataModel;
 }
 

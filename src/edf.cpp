@@ -13,6 +13,7 @@
 
 using namespace std;
 using namespace AlenkaFile;
+using namespace boost;
 
 namespace
 {
@@ -103,6 +104,7 @@ time_t EDF::getStartDate(int timeZone) const
 	return mktime(&time) - timeZone*60*60;
 }
 
+// TODO: Allow tracking through a progress dialog as this can take a long time, because it has to recreate the whole file from scratch.
 void EDF::save()
 {
 	saveSecondaryFile();
@@ -120,10 +122,13 @@ void EDF::save()
 		return;
 
 	// Open a temporary file for writing.
-	string tmpPathString = getFilePath() + ".%%%%.tmp";
-	boost::filesystem::path tmpPath = boost::filesystem::unique_path(tmpPathString);
+	filesystem::path tmpPath = filesystem::unique_path(getFilePath() + ".%%%%.tmp");
 
-	int tmpFile = edfopen_file_writeonly(tmpPath.string().c_str(), edfhdr->filetype, numberOfChannels);
+	int type = edfhdr->filetype;
+	if (type == EDFLIB_FILETYPE_EDF || type == EDFLIB_FILETYPE_BDF)
+		++type; // This is because edfopen_file_writeonly accepts only these two types.
+
+	int tmpFile = edfopen_file_writeonly(tmpPath.string().c_str(), type, numberOfChannels);
 	if (tmpFile < 0)
 		cerr << "edfopen_file_writeonly error: " << tmpFile << endl;
 	assert(0 <= tmpFile  && "Temporary file was not successfully opened.");
@@ -173,14 +178,20 @@ void EDF::save()
 		}
 	}
 
-	// Replace the original file with the new one.
+	// Close the open files.
 	int res = edfclose_file(tmpFile);
 	assert(res == 0 && "Closing tmp file failed."); (void)res;
 
 	res = edfclose_file(edfhdr->handle);
 	assert(res == 0 && "EDF file couldn't be closed."); (void)res;
 
-	boost::filesystem::rename(tmpPath, getFilePath());
+	// Save a backup of the original file.
+	filesystem::path backupPath = getFilePath() + ".backup";
+	if (!filesystem::exists(backupPath))
+		filesystem::rename(getFilePath(), backupPath);
+
+	// Replace the original file with the new one.
+	filesystem::rename(tmpPath, getFilePath());
 
 	openFile();
 }

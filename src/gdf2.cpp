@@ -1,11 +1,14 @@
 #include <AlenkaFile/gdf2.h>
 
+#include <boost/filesystem.hpp>
+
 #include <algorithm>
 #include <cstring>
 #include <set>
 
 using namespace std;
 using namespace AlenkaFile;
+using namespace boost;
 
 namespace
 {
@@ -366,6 +369,11 @@ void GDF2::save()
 		}
 	}
 
+	// Make a backup copy.
+	filesystem::path backupPath = getFilePath() + ".backup";
+	if (!filesystem::exists(backupPath))
+		filesystem::copy(getFilePath(), backupPath);
+
 	// Write mode, NEV and SR.
 	seekFile(file, startOfEventTable, true);
 
@@ -392,6 +400,8 @@ void GDF2::save()
 	writeFile(file, types.data(), numberOfEvents);
 	writeFile(file, channels.data(), numberOfEvents);
 	writeFile(file, durations.data(), numberOfEvents);
+
+	file.sync();
 }
 
 bool GDF2::load()

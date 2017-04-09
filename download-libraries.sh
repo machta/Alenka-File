@@ -65,7 +65,7 @@ fi
 
 echo
 echo ========== Download summary ==========
-echo "Library                 Status"
+echo "Library path            Status"
 echo ======================================
 echo "libgdf                  $libgdf"
 echo "EDFlib                  $EDFlib"

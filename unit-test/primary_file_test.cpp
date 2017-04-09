@@ -1,4 +1,4 @@
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 #include <AlenkaFile/gdf2.h>
 #include <AlenkaFile/edf.h>

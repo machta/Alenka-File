@@ -2,7 +2,7 @@
 
 ### Requirments
 * git
-* cmake (for Ubuntu 14 download the latest version)
+* cmake 3.1+ (for Ubuntu 14 download the latest version)
 * g++ or Microsoft Visual C++ compiler
 
 On Debian-like systems you can use: `sudo apt install git cmake-gui build-essential`

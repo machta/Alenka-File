@@ -3,6 +3,7 @@
 #include <AlenkaFile/gdf2.h>
 #include <AlenkaFile/edf.h>
 #include <AlenkaFile/libgdf.h>
+#include <AlenkaFile/mat.h>
 
 #include <fstream>
 #include <string>
@@ -74,9 +75,7 @@ void printException(function<void (void)> fun)
 	}
 }
 
-} // namespace
-
-class testFile
+class TestFile
 {
 	bool hasValues = false;
 	vector<double> values;
@@ -86,26 +85,25 @@ public:
 	double sampleRate;
 	unsigned int channelCount, samplesRecorded;
 
-	testFile(const string& path, double sampleRate, int channelCount, int samplesRecorded) :
-		path(path), sampleRate(sampleRate), channelCount(channelCount), samplesRecorded(samplesRecorded)
-	{}
-
-	~testFile()
-	{}
+	TestFile(const string& path, double sampleRate, int channelCount, int samplesRecorded) :
+		path(path), sampleRate(sampleRate), channelCount(channelCount), samplesRecorded(samplesRecorded) {}
+	~TestFile() {}
 
 	DataFile* makeGDF2()
 	{
 		return new GDF2(path + ".gdf");
 	}
-
 	DataFile* makeEDF()
 	{
 		return new EDF(path + ".edf");
 	}
-
 	DataFile* makeLibGDF()
 	{
 		return new LibGDF(path + ".gdf");
+	}
+	DataFile* makeMAT()
+	{
+		return new MAT(path + ".mat");
 	}
 
 	const vector<double>& getValues()
@@ -244,17 +242,25 @@ public:
 	}
 };
 
+const int MAT_FS = 200;
+const int MAT_CHANNELS = 19;
+const int MAT_SAMPLES = 400;
+
+} // namespace
+
 class primary_file_test : public ::testing::Test
 {
 protected:
 	primary_file_test() :
 		gdf00(path + "gdf/gdf00", 200, 19, 364000),
 		gdf01(path + "gdf/gdf01", 50, 1, 2050),
-		edf00(path + "edf/edf00", 200, 37, 363620)
-	{}
-
-	virtual ~primary_file_test()
-	{}
+		edf00(path + "edf/edf00", 200, 37, 363620),
+		mat4(path + "mat/4", MAT_FS, MAT_CHANNELS, MAT_SAMPLES),
+		mat6(path + "mat/6", MAT_FS, MAT_CHANNELS, MAT_SAMPLES),
+		mat7(path + "mat/7", MAT_FS, MAT_CHANNELS, MAT_SAMPLES),
+		mat73(path + "mat/73", MAT_FS, MAT_CHANNELS, MAT_SAMPLES),
+		matDefault(path + "mat/default", MAT_FS, MAT_CHANNELS, MAT_SAMPLES) {}
+	virtual ~primary_file_test() {}
 
 	template<class T>
 	void gdfStartTimeTest()
@@ -270,8 +276,9 @@ protected:
 
 	string path = "unit-test/data/";
 
-	testFile gdf00, gdf01;
-	testFile edf00;
+	TestFile gdf00, gdf01;
+	TestFile edf00;
+	TestFile mat4, mat6, mat7, mat73, matDefault;
 };
 
 // Tests common to all file types.
@@ -284,6 +291,8 @@ TEST_F(primary_file_test, outOfBounds)
 	gdf01.outOfBoundsTest(unique_ptr<DataFile>(gdf01.makeLibGDF()).get());
 	
 	edf00.outOfBoundsTest(unique_ptr<DataFile>(edf00.makeEDF()).get());
+
+	//mat4.outOfBoundsTest(unique_ptr<DataFile>(mat4.makeMAT()).get()); // TODO: Fix this
 }
 
 // TODO: Add all kinds of crazy tests that read samples and compare them to data read from the whole file. Like read only one sample long block.
@@ -306,12 +315,12 @@ TEST_F(primary_file_test, GDF2_exceptions)
 	EXPECT_THROW(printException([this, &file, &data] () { file->readSignal(data.data(), 100, 50); }), invalid_argument);
 }
 
-TEST_F(primary_file_test, GDF2_startTime)
+TEST_F(primary_file_test, GDF2_start_time)
 {
 	gdfStartTimeTest<GDF2>();
 }
 
-TEST_F(primary_file_test, GDF2_metaInfo)
+TEST_F(primary_file_test, GDF2_meta_info)
 {
 	gdf00.metaInfoTest(unique_ptr<DataFile>(gdf00.makeGDF2()).get());
 	gdf01.metaInfoTest(unique_ptr<DataFile>(gdf01.makeGDF2()).get());
@@ -346,12 +355,12 @@ TEST_F(primary_file_test, LibGDF_exceptions)
 	EXPECT_THROW(printException([this, &file, &data] () { file->readSignal(data.data(), 100, 50); }), invalid_argument);
 }
 
-TEST_F(primary_file_test, LibGDF_startTime)
+TEST_F(primary_file_test, LibGDF_start_time)
 {
 	gdfStartTimeTest<LibGDF>();
 }
 
-TEST_F(primary_file_test, LibGDF_metaInfo)
+TEST_F(primary_file_test, LibGDF_meta_info)
 {
 	gdf00.metaInfoTest(unique_ptr<DataFile>(gdf00.makeLibGDF()).get());
 	gdf01.metaInfoTest(unique_ptr<DataFile>(gdf01.makeLibGDF()).get());
@@ -379,7 +388,7 @@ TEST_F(primary_file_test, EDF_exceptions)
 	EXPECT_THROW(printException([this, &file, &data] () { file->readSignal(data.data(), 100, 50); }), invalid_argument);
 }
 
-TEST_F(primary_file_test, EDF_startTime)
+TEST_F(primary_file_test, EDF_start_time)
 {
 	unique_ptr<DataFile> file;
 
@@ -390,7 +399,7 @@ TEST_F(primary_file_test, EDF_startTime)
 	EXPECT_LE(time - seconds, 60*60*24) << "Start time is within 24 hours.";
 }
 
-TEST_F(primary_file_test, EDF_metaInfo)
+TEST_F(primary_file_test, EDF_meta_info)
 {
 	edf00.metaInfoTest(unique_ptr<DataFile>(edf00.makeEDF()).get());
 }
@@ -398,7 +407,26 @@ TEST_F(primary_file_test, EDF_metaInfo)
 TEST_F(primary_file_test, EDF_data_00)
 {
 	edf00.dataTest(unique_ptr<DataFile>(edf00.makeEDF()).get(), MAX_REL_ERR_DOUBLE/10000,
-				   MAX_REL_ERR_FLOAT/1000, MAX_ABS_ERR_DOUBLE/100000, MAX_ABS_ERR_FLOAT/100);
+		MAX_REL_ERR_FLOAT/1000, MAX_ABS_ERR_DOUBLE/100000, MAX_ABS_ERR_FLOAT/100);
 }
 
 // TODO: add a small edf file to test; like the gdf01
+
+// Tests of MAT.
+TEST_F(primary_file_test, MAT_meta_info)
+{
+	mat4.metaInfoTest(unique_ptr<DataFile>(mat4.makeMAT()).get());
+	mat6.metaInfoTest(unique_ptr<DataFile>(mat6.makeMAT()).get());
+	mat7.metaInfoTest(unique_ptr<DataFile>(mat7.makeMAT()).get());
+	mat73.metaInfoTest(unique_ptr<DataFile>(mat73.makeMAT()).get());
+	matDefault.metaInfoTest(unique_ptr<DataFile>(matDefault.makeMAT()).get());
+}
+
+TEST_F(primary_file_test, MAT_data)
+{
+	mat4.dataTest(unique_ptr<DataFile>(mat4.makeMAT()).get());
+	mat6.dataTest(unique_ptr<DataFile>(mat6.makeMAT()).get());
+	mat7.dataTest(unique_ptr<DataFile>(mat7.makeMAT()).get());
+	mat73.dataTest(unique_ptr<DataFile>(mat73.makeMAT()).get());
+	matDefault.dataTest(unique_ptr<DataFile>(matDefault.makeMAT()).get());
+}

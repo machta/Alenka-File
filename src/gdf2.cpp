@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cstring>
 #include <set>
+#include <stdexcept>
 
 using namespace std;
 using namespace AlenkaFile;

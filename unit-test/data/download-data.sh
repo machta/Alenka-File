@@ -16,6 +16,7 @@ function download
 data0=skipped
 data1=skipped
 data2=skipped
+data3=skipped
 
 md5sum -c --quiet data.md5 ||
 {
@@ -25,7 +26,8 @@ md5sum -c --quiet data.md5 ||
 	mv gdf/t00.gdf gdf/gdf00.gdf &&
 	mv gdf/t00_values.dat gdf/gdf00_values.dat &&
 	mv gdf/t01.gdf gdf/gdf01.gdf &&
-	mv gdf/t01_values.dat gdf/gdf01_values.dat
+	mv gdf/t01_values.dat gdf/gdf01_values.dat &&
+	{ download 24hxbhi3y1nxh91 alenka-file-data3 && data3=OK || data3=fail; }
 } &&
 md5sum -c --quiet data.md5 &&
 md5=OK || md5=fail
@@ -37,5 +39,6 @@ echo ================================
 echo "data0               $data0"
 echo "data1               $data1"
 echo "data2               $data2"
+echo "data3               $data3"
 echo "md5sum              $md5"
 

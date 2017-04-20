@@ -213,7 +213,7 @@ void EDF::openFile()
 	int err = edfopen_file_readonly(getFilePath().c_str(), edfhdr, EDFLIB_READ_ALL_ANNOTATIONS);
 	if (err < 0)
 		cerr << "edfopen_file_readonly error: " << edfhdr->filetype << endl;
-	assert(err == 0 && "File EDF was not successfully opened."); (void)err;
+	assert(err == 0 && "EDF file was not successfully opened."); // TODO: Make better error checks.
 
 	samplesRecorded = edfhdr->signalparam[0].smp_in_file;
 

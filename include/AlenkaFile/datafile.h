@@ -40,7 +40,7 @@ public:
 	DataFile(const std::string& filePath) : filePath(filePath) {}
 	virtual ~DataFile() {}
 
-	std::string getFilePath()
+	std::string getFilePath() const
 	{
 		return filePath;
 	}
@@ -160,9 +160,7 @@ public:
 	static void changeEndianness(char* data, int size)
 	{
 		for (int i = 0, sizeHalf = size/2; i < sizeHalf; ++i)
-		{
 			std::swap(data[i], data[size - i - 1]);
-		}
 	}
 
 	/**

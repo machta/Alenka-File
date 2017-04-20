@@ -6,7 +6,6 @@
 #include <cassert>
 #include <cmath>
 #include <fstream>
-#include <functional>
 
 namespace AlenkaFile
 {
@@ -56,9 +55,6 @@ public:
 	}
 
 private:
-	char* recordRawBuffer;
-	double* recordDoubleBuffer;
-
 	std::fstream file;
 	double samplingFrequency;
 	uint64_t samplesRecorded;
@@ -66,8 +62,10 @@ private:
 	int64_t startOfEventTable;
 	double* scale;
 	int dataTypeSize;
-	std::function<double (void*)> convertSampleToDouble;
 	int version;
+	char* recordRawBuffer;
+	double* recordDoubleBuffer;
+	int dataType;
 
 	/**
 	 * @brief A structure for storing values from the file's fixed header

@@ -73,7 +73,16 @@ streampos tellFile(fstream& file, bool isGet = true)
 	return isGet ? file.tellg() : file.tellp();
 }
 
-void readRecord(fstream& file, char* rawBuffer, double* samples, int n, int sampleSize, const function<double (void*)>& convertor, bool isLittleEndian)
+template<class T>
+void convertSamples(T* dataBuffer, double* samples, int n)
+{
+	for (int i = 0; i < n; i++)
+	{
+		samples[i] = static_cast<double>(dataBuffer[i]);
+	}
+}
+
+void readRecord(fstream& file, char* rawBuffer, double* samples, int n, int sampleSize, int dataType, bool isLittleEndian)
 {
 	file.read(rawBuffer, sampleSize*n);
 
@@ -83,11 +92,23 @@ void readRecord(fstream& file, char* rawBuffer, double* samples, int n, int samp
 			DataFile::changeEndianness(rawBuffer + i*sampleSize, sampleSize);
 	}
 
-	for (int i = 0; i < n; i++)
+#define CASE(a_, b_) case a_: convertSamples(reinterpret_cast<b_*>(rawBuffer), samples, n); break;
+	switch (dataType)
 	{
-		samples[i] = convertor(rawBuffer);
-		rawBuffer += sampleSize;
+		CASE(1, int8_t);
+		CASE(2, uint8_t);
+		CASE(3, int16_t);
+		CASE(4, uint16_t);
+		CASE(5, int32_t);
+		CASE(6, uint32_t);
+		CASE(7, int64_t);
+		CASE(8, uint64_t);
+		CASE(16, float);
+		CASE(17, double);
+	default:
+		assert(0);
 	}
+#undef CASE
 }
 
 /**
@@ -259,17 +280,8 @@ GDF2::GDF2(const string& filePath, bool uncalibrated) : DataFile(filePath)
 
 	startOfData = 256*fh.headerLength;
 
-#define CASE(a_, b_)\
-case a_:\
-	dataTypeSize = sizeof(b_);\
-	convertSampleToDouble = [] (void* sample) -> double\
-	{\
-		b_ tmp = *reinterpret_cast<b_*>(sample);\
-		return static_cast<double>(tmp);\
-	};\
-	break;
-
-	switch (vh.typeOfData[0])
+#define CASE(a_, b_) case a_: dataTypeSize = sizeof(b_); break;
+	switch (dataType = vh.typeOfData[0])
 	{
 		CASE(1, int8_t);
 		CASE(2, uint8_t);
@@ -285,7 +297,6 @@ case a_:\
 		throw runtime_error("Unsupported data type.");
 		break;
 	}
-
 #undef CASE
 
 	if (uncalibrated == false)
@@ -441,7 +452,7 @@ void GDF2::readChannelsFloatDouble(vector<T*> dataChannels, const uint64_t first
 
 		for (unsigned int channelI = 0; channelI < getChannelCount(); ++channelI)
 		{
-			readRecord(file, recordRawBuffer, recordDoubleBuffer, samplesPerRecord, dataTypeSize, convertSampleToDouble, isLittleEndian);
+			readRecord(file, recordRawBuffer, recordDoubleBuffer, samplesPerRecord, dataTypeSize, dataType, isLittleEndian);
 
 			if (scale != nullptr)
 				calibrateSamples(recordDoubleBuffer, samplesPerRecord, vh.digitalMinimum[channelI], scale[channelI], vh.physicalMinimum[channelI]);

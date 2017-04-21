@@ -8,6 +8,7 @@
 #include <fstream>
 #include <string>
 #include <memory>
+#include <functional>
 
 using namespace std;
 using namespace AlenkaFile;

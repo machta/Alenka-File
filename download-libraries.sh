@@ -63,6 +63,17 @@ else
 	#mv $BOOST boost
 fi
 
+if [ -d matio ]
+then
+	matio=skipped
+else
+	git clone --depth 1 https://github.com/tbeu/matio.git &&
+	curl -L 'https://www.dropbox.com/s/tbmzcsagqfnjr86/matio.zip?dl=0' > matio.zip &&
+	unzip -q matio.zip &&
+	rm -rf matio.zip &&
+	matio=OK || matio=fail
+fi
+
 echo
 echo ========== Download summary ==========
 echo "Library path            Status"
@@ -72,4 +83,5 @@ echo "EDFlib                  $EDFlib"
 echo "pugixml                 $pugixml"
 echo "unit-test/googletest    $googletest"
 echo "boost                   $boost"
+echo "matio                   $matio"
 

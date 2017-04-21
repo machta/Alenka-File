@@ -1,8 +1,10 @@
 #include <AlenkaFile/mat.h>
 
 #include <matio.h>
+
 #include <cstdint>
 #include <stdexcept>
+#include <algorithm>
 
 using namespace std;
 using namespace AlenkaFile;

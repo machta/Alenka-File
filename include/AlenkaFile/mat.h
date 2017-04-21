@@ -3,6 +3,8 @@
 
 #include <AlenkaFile/datafile.h>
 
+#include <vector>
+
 typedef struct _mat_t mat_t;
 struct matvar_t;
 
@@ -12,11 +14,12 @@ namespace AlenkaFile
 class MAT : public DataFile
 {
 	mat_t* file;
-	matvar_t* data;
 	double samplingFrequency;
 	int numberOfChannels;
 	uint64_t samplesRecorded;
-	void* readChunkBuffer;
+	std::vector<char> tmpBuffer;
+	std::vector<matvar_t*> data;
+	std::vector<int> sizes;
 
 public:
 	MAT(const std::string& filePath);
@@ -49,6 +52,8 @@ public:
 private:
 	template<typename T>
 	void readChannelsFloatDouble(std::vector<T*> dataChannels, uint64_t firstSample, uint64_t lastSample);
+
+	void fillDefaultMontage();
 };
 
 } // namespace AlenkaFile

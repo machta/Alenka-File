@@ -10,8 +10,6 @@ using namespace AlenkaFile;
 namespace
 {
 
-const int READ_CHUNK = 1000;
-
 template<class A, class B>
 void convertArray(A* a, B* b, int n)
 {
@@ -20,9 +18,9 @@ void convertArray(A* a, B* b, int n)
 }
 
 template<class B>
-void decodeArray(void* a, B* b, int code, int n = 1)
+void decodeArray(void* a, B* b, int code, int n = 1, int offset = 0)
 {
-#define CASE(a_, b_) case a_: convertArray(reinterpret_cast<b_*>(a), b, n); break;
+#define CASE(a_, b_) case a_: convertArray(reinterpret_cast<b_*>(a) + offset, b, n); break;
 	switch (code)
 	{
 		CASE(MAT_T_INT8, int8_t);
@@ -58,19 +56,36 @@ MAT::MAT(const string& filePath) : DataFile(filePath)
 	decodeArray(Fs->data, &samplingFrequency, Fs->data_type);
 	Mat_VarFree(Fs);
 
-	data = Mat_VarReadInfo(file, "data");
-	assert(data->rank == 2);
-	samplesRecorded = data->dims[0];
-	assert(data->dims[1] < 10*1000 && "Too many channels.");
-	numberOfChannels = static_cast<int>(data->dims[1]);
+	int i = 0;
+	samplesRecorded = 0;
 
-	readChunkBuffer = malloc(READ_CHUNK*sizeof(double));
+	while (1)
+	{
+		string varName = "data" + to_string(i);
+
+		matvar_t* var = Mat_VarReadInfo(file, varName.c_str());
+		if (!var)
+			break;
+		data.push_back(var);
+
+		assert(var->rank == 2);
+		sizes.push_back(static_cast<int>(var->dims[0]));
+		samplesRecorded += var->dims[0];
+
+		if (i++ == 0)
+			numberOfChannels = static_cast<int>(var->dims[1]);
+
+		assert(numberOfChannels == static_cast<int>(var->dims[1]));
+		assert(var->dims[1] < 10*1000 && "Too many channels.");
+	}
+
+	assert(i > 0);
 }
 
 MAT::~MAT()
 {
-	free(readChunkBuffer);
-	Mat_VarFree(data);
+	for (auto e : data)
+		Mat_VarFree(e);
 	Mat_Close(file);
 }
 
@@ -87,30 +102,72 @@ void MAT::save()
 
 bool MAT::load()
 {
-	return DataFile::load();
+	if (DataFile::loadSecondaryFile() == false)
+	{
+		fillDefaultMontage();
+		//loadEvents();
+		return false;
+	}
+
+	return true;
 }
 
 template<typename T>
 void MAT::readChannelsFloatDouble(vector<T*> dataChannels, uint64_t firstSample, uint64_t lastSample)
 {
-	for (unsigned int i = 0; i < dataChannels.size(); ++i)
+	assert(firstSample <= lastSample && "Bad parameter order.");
+	assert(lastSample < getSamplesRecorded() && "Reading out of bounds.");
+	assert(dataChannels.size() == getChannelCount() && "Make sure dataChannels has the same number of channels as the file.");
+
+	int i = 0;
+	uint64_t lastInChunk = 0;
+
+	while (lastInChunk += sizes[i], lastInChunk < firstSample)
+		++i;
+
+	uint64_t firstInChunk = lastInChunk - sizes[i];
+	--lastInChunk;
+
+	for (uint64_t j = firstSample; j < lastSample;)
 	{
-		for (uint64_t j = firstSample; j < lastSample; j += READ_CHUNK)
-		{
-			int toRead = min(READ_CHUNK, static_cast<int>(lastSample - j + 1));
+		uint64_t last = min(lastSample, lastInChunk);
+		int length = static_cast<int>(last - j + 1);
+		tmpBuffer.resize(numberOfChannels*length*8);
 
-			int start[2] = {static_cast<int>(j), static_cast<int>(i)};
-			int stride[2] = {1, 1};
-			int edge[2] = {toRead, 1};
+		int start[2] = {static_cast<int>(j - firstInChunk), 0};
+		int stride[2] = {1, 1};
+		int edge[2] = {length, numberOfChannels};
 
-			int err = Mat_VarReadData(file, data, readChunkBuffer, start, stride, edge);
-			assert(err == 0);
+		int err = Mat_VarReadData(file, data[i], tmpBuffer.data(), start, stride, edge);
+		assert(err == 0);
 
-			decodeArray(readChunkBuffer, dataChannels[i], data->data_type, toRead);
+		for (int k = 0; k < numberOfChannels; ++k)
+			decodeArray(tmpBuffer.data(), dataChannels[k], data[i]->data_type, length, k*length);
 
-			dataChannels[i] += toRead;
-		}
+		for (auto& e : dataChannels)
+			e += length;
+		firstInChunk += sizes[i];
+		lastInChunk += sizes[i];
+		j += length;
+		++i;
 	}
+}
+
+void MAT::fillDefaultMontage()
+{
+	getDataModel()->montageTable()->insertRows(0);
+
+	assert(getChannelCount() > 0);
+
+	AbstractTrackTable* defaultTracks = getDataModel()->montageTable()->trackTable(0);
+	defaultTracks->insertRows(0, getChannelCount());
+
+//	for (int i = 0; i < defaultTracks->rowCount(); ++i)
+//	{
+//		Track t = defaultTracks->row(i);
+//		t.label = "Track " + ;
+//		defaultTracks->row(i, t);
+//	}
 }
 
 } // namespace AlenkaFile

@@ -242,7 +242,7 @@ public:
 	}
 };
 
-const int MAT_FS = 200;
+const int MAT_FS = 100;
 const int MAT_CHANNELS = 19;
 const int MAT_SAMPLES = 400;
 

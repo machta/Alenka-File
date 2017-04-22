@@ -1,18 +1,10 @@
 #include <gtest/gtest.h>
+#include "common.h"
 
-#include <AlenkaFile/gdf2.h>
-#include <AlenkaFile/edf.h>
-#include <AlenkaFile/libgdf.h>
 #include <AlenkaFile/datamodel.h>
 
 #include <boost/filesystem.hpp>
 
-#include <fstream>
-#include <string>
-#include <memory>
-
-using namespace std;
-using namespace AlenkaFile;
 using namespace boost::filesystem;
 
 namespace

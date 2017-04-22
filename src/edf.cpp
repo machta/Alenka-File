@@ -22,29 +22,44 @@ const int MIN_READ_CHUNK = 200;
 const int OPT_READ_CHUNK = 2*1000;
 const int MAX_READ_CHUNK = 2*1000*1000;
 
-void copyMetaInfo(int file, const edf_hdr_struct* edfhdr, int numberOfChannels, int samplingFrequency)
+void writeSignalInfo(int file, DataFile* dataFile, const edf_hdr_struct* edfhdr)
 {
-	const edf_param_struct* sp = edfhdr->signalparam;
 	int res = 0;
 
-	for (int i = 0; i < numberOfChannels; ++i)
+	for (unsigned int i = 0; i < dataFile->getChannelCount(); ++i)
 	{
-		res |=  edf_set_samplefrequency(file, i, samplingFrequency);
-		res |=  edf_set_physical_maximum(file, i, sp[i].phys_max);
-		res |=  edf_set_physical_minimum(file, i, sp[i].phys_min);
-		res |=  edf_set_digital_maximum(file, i, sp[i].dig_max);
-		res |=  edf_set_digital_minimum(file, i, sp[i].dig_min);
-		res |=  edf_set_label(file, i, sp[i].label);
-		res |=  edf_set_prefilter(file, i, sp[i].prefilter);
-		res |=  edf_set_transducer(file, i, sp[i].transducer);
-		res |=  edf_set_physical_dimension(file, i, sp[i].physdimension);
+		res |=  edf_set_samplefrequency(file, i, static_cast<int>(dataFile->getSamplingFrequency()));
+		res |=  edf_set_physical_maximum(file, i, dataFile->getPhysicalMaximum(i));
+		res |=  edf_set_physical_minimum(file, i, dataFile->getPhysicalMinimum(i));
+		res |=  edf_set_digital_maximum(file, i, static_cast<int>(min<double>(dataFile->getDigitalMaximum(i), 32767)));
+		res |=  edf_set_digital_minimum(file, i, static_cast<int>(max<double>(dataFile->getDigitalMinimum(i), -32768)));
+		res |=  edf_set_label(file, i, dataFile->getLabel(i).c_str());
+
+		if (edfhdr)
+		{
+			res |=  edf_set_prefilter(file, i, edfhdr->signalparam[i].prefilter);
+			res |=  edf_set_transducer(file, i, edfhdr->signalparam[i].transducer);
+			res |=  edf_set_physical_dimension(file, i, edfhdr->signalparam[i].physdimension);
+		}
 	}
 
-	res |=  edf_set_startdatetime(file, edfhdr->startdate_year, edfhdr->startdate_month, edfhdr->startdate_day, edfhdr->starttime_hour, edfhdr->starttime_minute, edfhdr->starttime_second);
+	assert(res == 0 && "Make sure all values were set correctly."); (void)res;
+}
+
+void writeMetaInfo(int file, const edf_hdr_struct* edfhdr)
+{
+	if (!edfhdr)
+		return;
+
+	int res = 0;
+
+	res |=  edf_set_startdatetime(file, edfhdr->startdate_year, edfhdr->startdate_month, edfhdr->startdate_day,
+		edfhdr->starttime_hour, edfhdr->starttime_minute, edfhdr->starttime_second);
 	res |=  edf_set_patientname(file, edfhdr->patient_name);
 	res |=  edf_set_patientcode(file, edfhdr->patientcode);
 
-	// TODO: Figure out how to set these. This version causes problems. Or don't copy it: isntead show a warning that the file will have some incorrect values, and make it a known issue.
+	// TODO: Figure out how to set these. This version causes problems. Or don't copy it: isntead show a warning
+	// that the file will have some incorrect values, and make it a known issue.
 	//edf_set_gender_char(file, edfhdr->gender);
 	//edf_set_birthdate_char(file, edfhdr->birthdate);
 
@@ -104,7 +119,8 @@ time_t EDF::getStartDate(int timeZone) const
 	return mktime(&time) - timeZone*60*60;
 }
 
-// TODO: Allow tracking through a progress dialog as this can take a long time, because it has to recreate the whole file from scratch.
+// TODO: Allow tracking through a progress dialog as this can take a long time
+// (because it has to recreate the whole file from scratch).
 void EDF::save()
 {
 	saveSecondaryFile();
@@ -121,71 +137,14 @@ void EDF::save()
 	if (tablesToSave == 0)
 		return;
 
-	// Open a temporary file for writing.
+	// Make the new file under a temporary name.
 	filesystem::path tmpPath = filesystem::unique_path(getFilePath() + ".%%%%.tmp");
-
-	int type = edfhdr->filetype;
-	if (type == EDFLIB_FILETYPE_EDF || type == EDFLIB_FILETYPE_BDF)
-		++type; // This is because edfopen_file_writeonly accepts only these two types.
-
-	int tmpFile = edfopen_file_writeonly(tmpPath.string().c_str(), type, numberOfChannels);
-	if (tmpFile < 0)
-		cerr << "edfopen_file_writeonly error: " << tmpFile << endl;
-	assert(0 <= tmpFile  && "Temporary file was not successfully opened.");
-
-	// Copy data into the new file.
-	int sf = static_cast<int>(round(samplingFrequency));
-	copyMetaInfo(tmpFile, edfhdr, numberOfChannels, sf);
-
-	double* buffer = new double[numberOfChannels*sf*sizeof(double)];
-
-	for (uint64_t sampleIndex = 0; sampleIndex < getSamplesRecorded(); sampleIndex += sf)
-	{
-		readSignal(buffer, sampleIndex, sampleIndex + sf - 1);
-
-		for (int i = 0; i < numberOfChannels; ++i)
-		{
-			int res = edfwrite_physical_samples(tmpFile, buffer + i*sf);
-			assert(res == 0 && "Test write success."); (void)res;
-		}
-	}
-
-	// Write events.
-	for (int i = 0; i < montageTable->rowCount(); ++i)
-	{
-		if (montageTable->row(i).save)
-		{
-			AbstractEventTable* eventTable = montageTable->eventTable(i);
-
-			for (int j = 0; j < eventTable->rowCount(); ++j)
-			{
-				Event e = eventTable->row(j);
-
-				// Skip events belonging to tracks greater thatn the number of channels in the file.
-				// TODO: Perhaps make a warning about this?
-				if (-1 <= e.channel && e.channel < static_cast<int>(getChannelCount()) && e.type >= 0)
-				{
-					long long onset = convertEventPosition(e.position, getSamplingFrequency());
-					long long duration = convertEventPosition(e.duration, getSamplingFrequency());
-
-					stringstream ss;
-					ss << "t=" << e.type << " c=" << e.channel << "|" << e.label << "|" << e.description;
-
-					int res = edfwrite_annotation_utf8(tmpFile, onset, duration, ss.str().c_str());
-					assert(res == 0 && "Test write success."); (void)res;
-				}
-			}
-		}
-	}
-
-	// Close the open files.
-	int res = edfclose_file(tmpFile);
-	assert(res == 0 && "Closing tmp file failed."); (void)res;
-
-	res = edfclose_file(edfhdr->handle);
-	assert(res == 0 && "EDF file couldn't be closed."); (void)res;
+	saveAsWithType(tmpPath.string(), this, edfhdr);
 
 	// Save a backup of the original file.
+	int res = edfclose_file(edfhdr->handle);
+	assert(res == 0 && "EDF file couldn't be closed."); (void)res;
+
 	filesystem::path backupPath = getFilePath() + ".backup";
 	if (!filesystem::exists(backupPath))
 		filesystem::rename(getFilePath(), backupPath);
@@ -206,6 +165,46 @@ bool EDF::load()
 	}
 
 	return true;
+}
+
+double EDF::getPhysicalMaximum(unsigned int channel)
+{
+	if (channel < getChannelCount())
+		return edfhdr->signalparam[channel].phys_max;
+	return 0;
+}
+
+double EDF::getPhysicalMinimum(unsigned int channel)
+{
+	if (channel < getChannelCount())
+		return edfhdr->signalparam[channel].phys_min;
+	return 0;
+}
+
+double EDF::getDigitalMaximum(unsigned int channel)
+{
+	if (channel < getChannelCount())
+		return edfhdr->signalparam[channel].dig_max;
+	return 0;
+}
+
+double EDF::getDigitalMinimum(unsigned int channel)
+{
+	if (channel < getChannelCount())
+		return edfhdr->signalparam[channel].dig_min;
+	return 0;
+}
+
+string EDF::getLabel(unsigned int channel)
+{
+	if (channel < getChannelCount())
+		return edfhdr->signalparam[channel].label;
+	return 0;
+}
+
+void EDF::saveAs(const string& filePath, DataFile* sourceFile)
+{
+	saveAsWithType(filePath, sourceFile, nullptr);
 }
 
 void EDF::openFile()
@@ -291,16 +290,6 @@ void EDF::fillDefaultMontage()
 
 void EDF::loadEvents()
 {
-//	AbstractEventTypeTable* ett = getDataModel()->eventTypeTable();
-
-//	assert(ett->rowCount() == 0);
-//	ett->insertRows(0);
-
-//	EventType type = ett->row(0);
-//	type.id = 0;
-//	type.name = "EDF annotations";
-//	ett->row(0, type);
-
 	assert(getDataModel()->montageTable()->rowCount() > 0);
 
 	edf_annotation_struct event;
@@ -381,6 +370,76 @@ void EDF::addUsedEventTypes()
 
 		et->row(i, e);
 	}
+}
+
+void EDF::saveAsWithType(const string& filePath, DataFile* sourceFile, const edf_hdr_struct* edfhdr)
+{
+	int numberOfChannels = sourceFile->getChannelCount();
+	double samplingFrequency = sourceFile->getSamplingFrequency();
+	uint64_t samplesRecorded = sourceFile->getSamplesRecorded();
+
+	int type = EDFLIB_FILETYPE_EDFPLUS;
+	if (edfhdr)
+		type = edfhdr->filetype;
+	if (type == EDFLIB_FILETYPE_EDF || type == EDFLIB_FILETYPE_BDF)
+		++type; // This is because edfopen_file_writeonly accepts only these two types.
+
+	int tmpFile = edfopen_file_writeonly(filePath.c_str(), type, numberOfChannels);
+	if (tmpFile < 0)
+		cerr << "edfopen_file_writeonly error: " << tmpFile << endl;
+	assert(0 <= tmpFile  && "Temporary file was not successfully opened.");
+
+	// Copy data into the new file.
+	writeSignalInfo(tmpFile, sourceFile, edfhdr);
+	writeMetaInfo(tmpFile, edfhdr);
+
+	int sf = static_cast<int>(round(samplingFrequency));
+	double* buffer = new double[numberOfChannels*sf*sizeof(double)];
+
+	for (uint64_t sampleIndex = 0; sampleIndex < samplesRecorded; sampleIndex += sf)
+	{
+		sourceFile->readSignal(buffer, sampleIndex, sampleIndex + sf - 1);
+
+		for (int i = 0; i < numberOfChannels; ++i)
+		{
+			int res = edfwrite_physical_samples(tmpFile, buffer + i*sf);
+			assert(res == 0 && "Test write success."); (void)res;
+		}
+	}
+
+	// Write events.
+	AbstractMontageTable* montageTable = sourceFile->getDataModel()->montageTable();
+
+	for (int i = 0; i < montageTable->rowCount(); ++i)
+	{
+		if (montageTable->row(i).save)
+		{
+			AbstractEventTable* eventTable = montageTable->eventTable(i);
+
+			for (int j = 0; j < eventTable->rowCount(); ++j)
+			{
+				Event e = eventTable->row(j);
+
+				// Skip events belonging to tracks greater thatn the number of channels in the file.
+				// TODO: Perhaps make a warning about this?
+				if (-1 <= e.channel && e.channel < static_cast<int>(numberOfChannels) && e.type >= 0)
+				{
+					long long onset = convertEventPosition(e.position, samplingFrequency);
+					long long duration = convertEventPosition(e.duration, samplingFrequency);
+
+					stringstream ss;
+					ss << "t=" << e.type << " c=" << e.channel << "|" << e.label << "|" << e.description;
+
+					int res = edfwrite_annotation_utf8(tmpFile, onset, duration, ss.str().c_str());
+					assert(res == 0 && "Test write success."); (void)res;
+				}
+			}
+		}
+	}
+
+	// Close the open files.
+	int res = edfclose_file(tmpFile);
+	assert(res == 0 && "Closing tmp file failed."); (void)res;
 }
 
 } // namespace AlenkaFile

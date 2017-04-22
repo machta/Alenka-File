@@ -54,6 +54,37 @@ public:
 		readChannelsFloatDouble(dataChannels, firstSample, lastSample);
 	}
 
+	virtual double getPhysicalMaximum(unsigned int channel) override
+	{
+		if (channel < getChannelCount())
+			return vh.physicalMaximum[channel];
+		return 0;
+	}
+	virtual double getPhysicalMinimum(unsigned int channel) override
+	{
+		if (channel < getChannelCount())
+			return vh.physicalMinimum[channel];
+		return 0;
+	}
+	virtual double getDigitalMaximum(unsigned int channel) override
+	{
+		if (channel < getChannelCount())
+			return vh.digitalMaximum[channel];
+		return 0;
+	}
+	virtual double getDigitalMinimum(unsigned int channel) override
+	{
+		if (channel < getChannelCount())
+			return vh.digitalMinimum[channel];
+		return 0;
+	}
+	virtual std::string getLabel(unsigned int channel)
+	{
+		if (channel < getChannelCount())
+			return vh.label[channel];
+		return 0;
+	}
+
 private:
 	std::fstream file;
 	double samplingFrequency;

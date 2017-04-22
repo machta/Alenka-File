@@ -5,7 +5,7 @@ add_subdirectory(googletest)
 include_directories(googletest/googletest/include)
 
 # The tests.
-file(GLOB SRC *.cpp)
+file(GLOB SRC *.cpp *.h)
 add_executable(unit-test ${SRC})
 target_link_libraries(unit-test ${LIBS_TO_LINK_ALENKA_FILE} gtest gtest_main)
 

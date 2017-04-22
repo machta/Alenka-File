@@ -141,6 +141,12 @@ public:
 		this->dataModel = dataModel;
 	}
 
+	virtual double getPhysicalMaximum(unsigned int channel) { return 0; (void)channel; }
+	virtual double getPhysicalMinimum(unsigned int channel) { return 0; (void)channel;}
+	virtual double getDigitalMaximum(unsigned int channel) { return 32767; (void)channel;}
+	virtual double getDigitalMinimum(unsigned int channel) { return -32768; (void)channel;}
+	virtual std::string getLabel(unsigned int channel) { return ""; (void)channel; }
+
 	/**
 	 * @brief Tests endianness.
 	 * @return Returns true if this computer is little-endian, false otherwise.

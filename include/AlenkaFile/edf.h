@@ -48,6 +48,14 @@ public:
 		readChannelsFloatDouble(dataChannels, firstSample, lastSample);
 	}
 
+	virtual double getPhysicalMaximum(unsigned int channel) override;
+	virtual double getPhysicalMinimum(unsigned int channel) override;
+	virtual double getDigitalMaximum(unsigned int channel) override;
+	virtual double getDigitalMinimum(unsigned int channel) override;
+	virtual std::string getLabel(unsigned int channel);
+
+	static void saveAs(const std::string& filePath, DataFile* sourceFile);
+
 private:
 	double samplingFrequency;
 	int numberOfChannels;
@@ -62,6 +70,7 @@ private:
 	void fillDefaultMontage();
 	void loadEvents();
 	void addUsedEventTypes();
+	static void saveAsWithType(const std::string& filePath, DataFile* sourceFile, const edf_hdr_struct* edfhdr);
 };
 
 } // namespace AlenkaFile

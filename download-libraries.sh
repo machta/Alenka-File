@@ -68,7 +68,7 @@ then
 	matio=skipped
 else
 	git clone --depth 1 https://github.com/tbeu/matio.git &&
-	curl -L 'https://www.dropbox.com/s/tbmzcsagqfnjr86/matio.zip?dl=0' > matio.zip &&
+	curl -L 'https://www.dropbox.com/s/abn2haw397vb2m2/matio.zip?dl=0' > matio.zip &&
 	unzip -q matio.zip &&
 	rm -rf matio.zip &&
 	matio=OK || matio=fail

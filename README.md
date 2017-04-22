@@ -4,7 +4,7 @@
 * git
 * cmake 3.1+ (for Ubuntu 14 download the latest version)
 * g++ or Microsoft Visual C++ 2015 compiler
-* Matio and HD5 library
+* Matio library
 
 On Debian-like systems you can use: `sudo apt install git cmake-gui build-essential`
 
@@ -12,8 +12,7 @@ MSVC compiler can be acquired by installing Visual C++ Build Tools 2015. Choose 
 installation, and uncheck all options but "Windows 8.1 SDK". If you already have Visual
 Studio, you don't need to install this.
 
-On Linux install matio package. On Windows Matio is downloaded automatically, but you must
-install [HDF5 runtime](https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.16/bin/windows/extra/).
+On Linux install "matio" package. On Windows Matio is downloaded automatically.
 
 ### Build instructions
 1. Clone this repo

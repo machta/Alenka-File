@@ -67,9 +67,13 @@ template<typename T>
 void LibGDF::readSignalFromFileFloatDouble(vector<T*> dataChannels, uint64_t firstSample, uint64_t lastSample)
 {
 	assert(firstSample <= lastSample && "Bad parameter order.");
-	assert(lastSample < getSamplesRecorded() && "Reading out of bounds.");
-	assert(dataChannels.size() == getChannelCount() && "Make sure dataChannels has the same number of channels as the file.");
 	assert(readChunk > 0);
+
+	if (getSamplesRecorded() <= lastSample)
+		invalid_argument("LibGDF: reading out of bounds");
+
+	if (dataChannels.size() < getChannelCount())
+		invalid_argument("LibGDF: too few dataChannels");
 
 	uint64_t nextBoundary = (firstSample + readChunk - 1/readChunk);
 

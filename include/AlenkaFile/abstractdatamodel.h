@@ -115,6 +115,9 @@ protected:
 
 class DataModel
 {
+	AbstractEventTypeTable* ett;
+	AbstractMontageTable* mt;
+
 public:
 	DataModel(AbstractEventTypeTable* eventTypeTable, AbstractMontageTable* montageTable) :
 		ett(eventTypeTable), mt(montageTable) {}
@@ -164,10 +167,6 @@ public:
 		c[1] = color.green();
 		c[2] = color.blue();
 	}
-
-private:
-	AbstractEventTypeTable* ett;
-	AbstractMontageTable* mt;
 };
 
 } // namespace AlenkaFile

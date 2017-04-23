@@ -287,8 +287,8 @@ void DataFile::saveSecondaryFile(string montFilePath)
 	xml_document doc;
 	buildXML(doc, dataModel);
 
-	bool res = doc.save_file(montFilePath.c_str());
-	assert(res && "Assure the .mont file was written successfully."); (void)res;
+	if (!doc.save_file(montFilePath.c_str()))
+		throw runtime_error("Error writing " + montFilePath);
 }
 
 bool DataFile::loadSecondaryFile(string montFilePath)

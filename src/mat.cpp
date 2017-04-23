@@ -50,11 +50,15 @@ namespace AlenkaFile
 MAT::MAT(const string& filePath) : DataFile(filePath)
 {
 	file = Mat_Open(filePath.c_str(), MAT_ACC_RDONLY);
-	assert(file && "File  was not successfully opened.");
+
+	if (!file)
+		throw runtime_error("Error while opening " + filePath);
 
 	matvar_t* Fs = Mat_VarRead(file, "Fs");
-	assert(Fs);
-	assert(Fs->dims[0] >= 1);
+
+	if (!Fs || Fs->dims[0] <= 0)
+		throw runtime_error("Bad MAT file format");
+
 	decodeArray(Fs->data, &samplingFrequency, Fs->data_type);
 	Mat_VarFree(Fs);
 
@@ -70,15 +74,20 @@ MAT::MAT(const string& filePath) : DataFile(filePath)
 			break;
 		data.push_back(var);
 
-		assert(var->rank == 2);
+		if (var->rank != 2)
+			throw runtime_error("Bad MAT file format");
+
 		sizes.push_back(static_cast<int>(var->dims[0]));
 		samplesRecorded += var->dims[0];
 
 		if (i++ == 0)
 			numberOfChannels = static_cast<int>(var->dims[1]);
 
-		assert(numberOfChannels == static_cast<int>(var->dims[1]));
-		assert(var->dims[1] < 10*1000 && "Too many channels.");
+		if (numberOfChannels != static_cast<int>(var->dims[1]))
+			throw runtime_error("All data variables must have the same number of channels/columns");
+
+		if (10*1000 < numberOfChannels)
+			throw runtime_error("Too many channes in " + varName + ". You probably saved the data with channels in rows by mistake.");
 	}
 
 	assert(i > 0);
@@ -118,8 +127,12 @@ template<typename T>
 void MAT::readChannelsFloatDouble(vector<T*> dataChannels, uint64_t firstSample, uint64_t lastSample)
 {
 	assert(firstSample <= lastSample && "Bad parameter order.");
-	assert(lastSample < getSamplesRecorded() && "Reading out of bounds.");
-	assert(dataChannels.size() == getChannelCount() && "Make sure dataChannels has the same number of channels as the file.");
+
+	if (getSamplesRecorded() <= lastSample)
+		invalid_argument("MAT: reading out of bounds");
+
+	if (dataChannels.size() < getChannelCount())
+		invalid_argument("MAT: too few dataChannels");
 
 	int i = 0;
 	uint64_t lastInChunk = 0;
@@ -163,13 +176,6 @@ void MAT::fillDefaultMontage()
 
 	AbstractTrackTable* defaultTracks = getDataModel()->montageTable()->trackTable(0);
 	defaultTracks->insertRows(0, getChannelCount());
-
-//	for (int i = 0; i < defaultTracks->rowCount(); ++i)
-//	{
-//		Track t = defaultTracks->row(i);
-//		t.label = "Track " + ;
-//		defaultTracks->row(i, t);
-//	}
 }
 
 } // namespace AlenkaFile

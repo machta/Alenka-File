@@ -3,7 +3,6 @@
 
 #include <AlenkaFile/datafile.h>
 
-#include <cassert>
 #include <cmath>
 #include <fstream>
 

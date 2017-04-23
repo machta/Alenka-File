@@ -6,6 +6,7 @@
 #include <cstring>
 #include <set>
 #include <stdexcept>
+#include <cassert>
 
 using namespace std;
 using namespace AlenkaFile;
@@ -140,9 +141,12 @@ namespace AlenkaFile
 
 GDF2::GDF2(const string& filePath, bool uncalibrated) : DataFile(filePath)
 {
-	file.exceptions(ifstream::failbit | ifstream::badbit);
 	file.open(filePath, file.in | file.out | file.binary);
-	assert(file.is_open() && "File GDF2 was not successfully opened.");
+
+	if (!file.is_open())
+		throw runtime_error("GDF2 file could not be successfully opened");
+
+	file.exceptions(ifstream::failbit | ifstream::badbit);
 
 	// Load fixed header.
 	seekFile(file, 0, true);
@@ -295,8 +299,7 @@ GDF2::GDF2(const string& filePath, bool uncalibrated) : DataFile(filePath)
 		CASE(16, float);
 		CASE(17, double);
 	default:
-		throw runtime_error("Unsupported data type.");
-		break;
+		throw runtime_error("Unsupported data type for GDF2");
 	}
 #undef CASE
 
@@ -432,8 +435,12 @@ template<typename T>
 void GDF2::readChannelsFloatDouble(vector<T*> dataChannels, const uint64_t firstSample, const uint64_t lastSample)
 {
 	assert(firstSample <= lastSample && "Bad parameter order.");
-	assert(lastSample < getSamplesRecorded() && "Reading out of bounds.");
-	assert(dataChannels.size() == getChannelCount() && "Make sure dataChannels has the same number of channels as the file.");
+
+	if (getSamplesRecorded() <= lastSample)
+		invalid_argument("GDF2: reading out of bounds");
+
+	if (dataChannels.size() < getChannelCount())
+		invalid_argument("GDF2: too few dataChannels");
 
 	int samplesPerRecord = vh.samplesPerRecord[0];
 	int recordChannelBytes = samplesPerRecord*dataTypeSize;
@@ -569,7 +576,7 @@ void GDF2::fillDefaultMontage()
 {
 	getDataModel()->montageTable()->insertRows(0);
 
-	assert(getChannelCount() > 0);
+	assert(0 < getChannelCount());
 
 	AbstractTrackTable* defaultTracks = getDataModel()->montageTable()->trackTable(0);
 	defaultTracks->insertRows(0, getChannelCount());

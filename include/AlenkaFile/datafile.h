@@ -9,7 +9,6 @@
 #include <cassert>
 
 // TODO: add a public interface for access to the headers
-// TODO: upgrade some of the asserts to exceptions
 
 namespace AlenkaFile
 {
@@ -32,6 +31,9 @@ namespace AlenkaFile
  */
 class DataFile
 {
+	std::string filePath;
+	DataModel* dataModel;
+
 public:
 	/**
 	 * @brief DataFile constructor.
@@ -178,10 +180,6 @@ public:
 	{
 		changeEndianness(reinterpret_cast<char*>(val), sizeof(T));
 	}
-
-private:
-	std::string filePath;
-	DataModel* dataModel;
 };
 
 } // namespace AlenkaFile

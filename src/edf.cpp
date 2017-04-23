@@ -43,7 +43,9 @@ void writeSignalInfo(int file, DataFile* dataFile, const edf_hdr_struct* edfhdr)
 		}
 	}
 
-	assert(res == 0 && "Make sure all values were set correctly."); (void)res;
+	if (res)
+		cerr << "Warning: EDF bad values in writeSignalInfo" << endl;
+	assert(res == 0);
 }
 
 void writeMetaInfo(int file, const edf_hdr_struct* edfhdr)
@@ -69,7 +71,9 @@ void writeMetaInfo(int file, const edf_hdr_struct* edfhdr)
 	res |=  edf_set_equipment(file, edfhdr->equipment);
 	res |=  edf_set_recording_additional(file, edfhdr->recording_additional);
 
-	assert(res == 0 && "Make sure all values were set correctly."); (void)res;
+	if (res)
+		cerr << "Warning: EDF bad values in writeMetaInfo" << endl;
+	assert(res == 0);
 }
 
 long long convertEventPosition(int sample, double samplingFrequency)
@@ -99,9 +103,10 @@ EDF::~EDF()
 	delete[] readChunkBuffer;
 
 	int err = edfclose_file(edfhdr->handle);
-	assert(err == 0 && "EDF file couldn't be closed."); (void)err;
-
 	delete edfhdr;
+
+	if (err < 0)
+		cerr << "Error closing EDF file" << endl;
 }
 
 time_t EDF::getStartDate(int timeZone) const
@@ -210,9 +215,14 @@ void EDF::saveAs(const string& filePath, DataFile* sourceFile)
 void EDF::openFile()
 {
 	int err = edfopen_file_readonly(getFilePath().c_str(), edfhdr, EDFLIB_READ_ALL_ANNOTATIONS);
+
 	if (err < 0)
-		cerr << "edfopen_file_readonly error: " << edfhdr->filetype << endl;
-	assert(err == 0 && "EDF file was not successfully opened."); // TODO: Make better error checks.
+	{
+		if (edfhdr->filetype == EDFLIB_FILE_CONTAINS_FORMAT_ERRORS)
+			throw runtime_error("Warning: EDF format error");
+		else
+			throw runtime_error("edfopen_file_readonly error: " + to_string(edfhdr->filetype));
+	}
 
 	samplesRecorded = edfhdr->signalparam[0].smp_in_file;
 
@@ -234,8 +244,12 @@ template<typename T>
 void EDF::readChannelsFloatDouble(vector<T*> dataChannels, uint64_t firstSample, uint64_t lastSample)
 {
 	assert(firstSample <= lastSample && "Bad parameter order.");
-	assert(lastSample < getSamplesRecorded() && "Reading out of bounds.");
-	assert(dataChannels.size() == getChannelCount() && "Make sure dataChannels has the same number of channels as the file.");
+
+	if (getSamplesRecorded() <= lastSample)
+		invalid_argument("EDF: reading out of bounds");
+
+	if (dataChannels.size() < getChannelCount())
+		invalid_argument("EDF: too few dataChannels");
 
 	int handle = edfhdr->handle;
 	long long err; (void)err;
@@ -243,7 +257,9 @@ void EDF::readChannelsFloatDouble(vector<T*> dataChannels, uint64_t firstSample,
 	for (unsigned int i = 0; i < getChannelCount(); i++)
 	{
 		err = edfseek(handle, i, firstSample, EDFSEEK_SET);
-		assert(err == static_cast<long long>(firstSample) && "edfseek failed.");
+
+		if (err != static_cast<long long>(firstSample))
+			throw runtime_error("edfseek failed");
 	}
 
 	assert(readChunk > 0);
@@ -258,7 +274,9 @@ void EDF::readChannelsFloatDouble(vector<T*> dataChannels, uint64_t firstSample,
 		for (unsigned int i = 0; i < getChannelCount(); i++)
 		{
 			err = edfread_physical_samples(handle, i, n, readChunkBuffer);
-			assert(err == n && "edfread_physical_samples failed.");
+
+			if (err != n)
+				throw runtime_error("edfread_physical_samples failed");
 
 			for (int j = 0; j < n; j++)
 				dataChannels[i][j] = static_cast<T>(readChunkBuffer[j]);
@@ -275,7 +293,7 @@ void EDF::fillDefaultMontage()
 {
 	getDataModel()->montageTable()->insertRows(0);
 
-	assert(getChannelCount() > 0);
+	assert(0 < getChannelCount());
 
 	AbstractTrackTable* defaultTracks = getDataModel()->montageTable()->trackTable(0);
 	defaultTracks->insertRows(0, getChannelCount());
@@ -290,7 +308,7 @@ void EDF::fillDefaultMontage()
 
 void EDF::loadEvents()
 {
-	assert(getDataModel()->montageTable()->rowCount() > 0);
+	assert(0 < getDataModel()->montageTable()->rowCount());
 
 	edf_annotation_struct event;
 	int eventCount = static_cast<int>(edfhdr->annotations_in_file);
@@ -385,9 +403,9 @@ void EDF::saveAsWithType(const string& filePath, DataFile* sourceFile, const edf
 		++type; // This is because edfopen_file_writeonly accepts only these two types.
 
 	int tmpFile = edfopen_file_writeonly(filePath.c_str(), type, numberOfChannels);
+
 	if (tmpFile < 0)
-		cerr << "edfopen_file_writeonly error: " << tmpFile << endl;
-	assert(0 <= tmpFile  && "Temporary file was not successfully opened.");
+		throw runtime_error("edfopen_file_writeonly error: " + to_string(tmpFile));
 
 	// Copy data into the new file.
 	writeSignalInfo(tmpFile, sourceFile, edfhdr);
@@ -403,7 +421,9 @@ void EDF::saveAsWithType(const string& filePath, DataFile* sourceFile, const edf
 		for (int i = 0; i < numberOfChannels; ++i)
 		{
 			int res = edfwrite_physical_samples(tmpFile, buffer + i*sf);
-			assert(res == 0 && "Test write success."); (void)res;
+
+			if (res != 0)
+				throw runtime_error("edfwrite_physical_samples failed");
 		}
 	}
 
@@ -431,7 +451,9 @@ void EDF::saveAsWithType(const string& filePath, DataFile* sourceFile, const edf
 					ss << "t=" << e.type << " c=" << e.channel << "|" << e.label << "|" << e.description;
 
 					int res = edfwrite_annotation_utf8(tmpFile, onset, duration, ss.str().c_str());
-					assert(res == 0 && "Test write success."); (void)res;
+
+					if (res != 0)
+						throw runtime_error("edfwrite_annotation_utf8 failed");
 				}
 			}
 		}
@@ -439,7 +461,10 @@ void EDF::saveAsWithType(const string& filePath, DataFile* sourceFile, const edf
 
 	// Close the open files.
 	int res = edfclose_file(tmpFile);
-	assert(res == 0 && "Closing tmp file failed."); (void)res;
+
+	if (res != 0)
+		throw runtime_error("Closing tmp EDF file failed");
+
 }
 
 } // namespace AlenkaFile

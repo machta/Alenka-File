@@ -10,6 +10,8 @@ namespace AlenkaFile
 
 class EventTypeTable : public AbstractEventTypeTable
 {
+	std::vector<EventType> table;
+
 public:
 	virtual ~EventTypeTable() override {}
 	virtual int rowCount() const override { return static_cast<int>(table.size()); }
@@ -17,13 +19,12 @@ public:
 	virtual void removeRows(int row, int count) override;
 	virtual EventType row(int i) const override { return table[i]; }
 	virtual void row(int i, const EventType& value) override { table[i] = value; }
-
-private:
-	std::vector<EventType> table;
 };
 
 class EventTable : public AbstractEventTable
 {
+	std::vector<Event> table;
+
 public:
 	virtual ~EventTable() override {}
 	virtual int rowCount() const override { return static_cast<int>(table.size()); }
@@ -31,13 +32,12 @@ public:
 	virtual void removeRows(int row, int count = 1) override;
 	virtual Event row(int i) const override { return table[i]; }
 	virtual void row(int i, const Event& value) override { table[i] = value; }
-
-private:
-	std::vector<Event> table;
 };
 
 class TrackTable : public AbstractTrackTable
 {
+	std::vector<Track> table;
+
 public:
 	virtual ~TrackTable() override {}
 	virtual int rowCount() const override { return static_cast<int>(table.size()); }
@@ -45,13 +45,14 @@ public:
 	virtual void removeRows(int row, int count = 1) override;
 	virtual Track row(int i) const override { return table[i]; }
 	virtual void row(int i, const Track& value) override { table[i] = value; }
-
-private:
-	std::vector<Track> table;
 };
 
 class MontageTable : public AbstractMontageTable
 {
+	std::vector<Montage> table;
+	std::vector<AbstractEventTable*> eTable;
+	std::vector<AbstractTrackTable*> tTable;
+
 public:
 	virtual ~MontageTable() override;
 	virtual int rowCount() const override { return static_cast<int>(table.size()); }
@@ -67,11 +68,6 @@ public:
 protected:
 	virtual AbstractEventTable* makeEventTable() override { return new EventTable(); }
 	virtual AbstractTrackTable* makeTrackTable() override { return new TrackTable(); }
-
-private:
-	std::vector<Montage> table;
-	std::vector<AbstractEventTable*> eTable;
-	std::vector<AbstractTrackTable*> tTable;
 };
 
 } // namespace AlenkaFile

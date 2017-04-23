@@ -16,6 +16,13 @@ namespace AlenkaFile
  */
 class LibGDF : public DataFile
 {
+	double samplingFrequency;
+	uint16_t numberOfChannels;
+	uint64_t samplesRecorded;
+	gdf::Reader* gdfReader;
+	int readChunk;
+	double* readChunkBuffer;
+
 public:
 	/**
 	 * @brief
@@ -49,13 +56,6 @@ public:
 	}
 
 private:
-	double samplingFrequency;
-	uint16_t numberOfChannels;
-	uint64_t samplesRecorded;
-	gdf::Reader* gdfReader;
-	int readChunk;
-	double* readChunkBuffer;
-
 	template<typename T>
 	void readSignalFromFileFloatDouble(std::vector<T*> dataChannels, uint64_t firstSample, uint64_t lastSample);
 };

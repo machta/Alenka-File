@@ -34,7 +34,7 @@ void testDataModel(const DataModel* dataModel)
 	ASSERT_EQ(trackTable->rowCount(), 2);
 
 	Track t1 = trackTable->row(0);
-	EXPECT_EQ(t1.label, "Track 0");
+	EXPECT_EQ(t1.label, "T 0");
 	EXPECT_EQ(t1.color[0], 0);
 	EXPECT_EQ(t1.color[1], 0);
 	EXPECT_EQ(t1.color[2], 0);
@@ -43,7 +43,7 @@ void testDataModel(const DataModel* dataModel)
 	EXPECT_EQ(t1.code, "out = in(0) + in(1);");
 
 	Track t2 = trackTable->row(1);
-	EXPECT_EQ(t2.label, "Track 1");
+	EXPECT_EQ(t2.label, "T 1");
 	EXPECT_EQ(t2.color[0], 0);
 	EXPECT_EQ(t2.color[1], 0);
 	EXPECT_EQ(t2.color[2], 0);
@@ -74,7 +74,7 @@ void testDataModel(const DataModel* dataModel)
 	ASSERT_EQ(trackTable->rowCount(), 1);
 
 	Track t3 = trackTable->row(0);
-	EXPECT_EQ(t3.label, "Track 0");
+	EXPECT_EQ(t3.label, "T 0");
 	EXPECT_EQ(t3.color[0], 0);
 	EXPECT_EQ(t3.color[1], 0);
 	EXPECT_EQ(t3.color[2], 0);
@@ -123,7 +123,7 @@ DataModel* makeDataModel()
 	trackTable->insertRows(0, 2);
 
 	Track t1 = trackTable->row(0);
-	t1.label = "Track 0";
+	t1.label = "T 0";
 	t1.color[0] = t1.color[1] = t1.color[2] = 0;
 	t1.amplitude = 0.000001;
 	t1.hidden = false;
@@ -131,7 +131,7 @@ DataModel* makeDataModel()
 	trackTable->row(0, t1);
 
 	Track t2 = trackTable->row(1);
-	t2.label = "Track 1";
+	t2.label = "T 1";
 	t2.color[0] = t2.color[1] = t2.color[2] = 0;
 	t2.amplitude = 0.000001;
 	t2.hidden = false;
@@ -162,7 +162,7 @@ DataModel* makeDataModel()
 	trackTable->insertRows(0);
 
 	Track t3 = trackTable->row(0);
-	t3.label = "Track 0";
+	t3.label = "T 0";
 	t3.color[0] = t3.color[1] = t3.color[2] = 0;
 	t3.amplitude = 0.00003;
 	t3.hidden = false;
@@ -214,7 +214,7 @@ void testMontages(const DataModel* dataModel)
 		EXPECT_EQ(t.color[0], 0);
 		EXPECT_EQ(t.color[1], 0);
 		EXPECT_EQ(t.color[2], 0);
-		EXPECT_EQ(t.amplitude, -0.000008);
+		EXPECT_EQ(t.amplitude, 1);
 		EXPECT_EQ(t.hidden, false);
 		EXPECT_EQ(t.code, "out = in(" + to_string(i) + ");");
 	}

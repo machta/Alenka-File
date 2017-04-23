@@ -16,6 +16,13 @@ namespace AlenkaFile
  */
 class EDF : public DataFile
 {
+	double samplingFrequency;
+	int numberOfChannels;
+	uint64_t samplesRecorded;
+	edf_hdr_struct* edfhdr;
+	int readChunk;
+	double* readChunkBuffer;
+
 public:
 	/**
 	 * @brief
@@ -57,13 +64,6 @@ public:
 	static void saveAs(const std::string& filePath, DataFile* sourceFile);
 
 private:
-	double samplingFrequency;
-	int numberOfChannels;
-	uint64_t samplesRecorded;
-	edf_hdr_struct* edfhdr;
-	int readChunk;
-	double* readChunkBuffer;
-
 	template<typename T>
 	void readChannelsFloatDouble(std::vector<T*> dataChannels, uint64_t firstSample, uint64_t lastSample);
 	void openFile();

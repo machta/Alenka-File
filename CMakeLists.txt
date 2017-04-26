@@ -38,7 +38,7 @@ set(LIBS_TO_LINK_ALENKA_FILE alenka-file GDF pugixml matio)
 set(LIBS_TO_LINK_ALENKA_FILE ${LIBS_TO_LINK_ALENKA_FILE} PARENT_SCOPE)
 
 # The library.
-file(GLOB SRC src/*)
+file(GLOB SRC src/* include/AlenkaFile/*.h)
 file(GLOB SRC_BOOST_S boost/libs/system/src/*.cpp)
 file(GLOB SRC_BOOST_FS boost/libs/filesystem/src/*.cpp)
 
@@ -49,6 +49,9 @@ if(MSVC)
 	add_definitions(-DBOOST_FILESYSTEM_NO_LIB -DBOOST_SYSTEM_NO_LIB) # This stops Microsoft's linker from needing the static libraries.
 else()
 	set_source_files_properties(${SRC} PROPERTIES COMPILE_FLAGS "-Wall -pedantic -Wextra -Wconversion")
+
+	#SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} --coverage")
+	#SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} --coverage")
 endif()
 
 include_directories(include)

@@ -12,7 +12,7 @@ MSVC compiler can be acquired by installing Visual C++ Build Tools 2015. Choose 
 installation, and uncheck all options but "Windows 8.1 SDK". If you already have Visual
 Studio, you don't need to install this.
 
-On Linux install "matio" package. On Windows Matio is downloaded automatically.
+On Linux install matio package ("libmatio-dev" for Ubuntu). On Windows Matio is downloaded automatically.
 
 ### Build instructions
 1. Clone this repo

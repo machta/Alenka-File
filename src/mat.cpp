@@ -5,12 +5,15 @@
 #include <cstdint>
 #include <stdexcept>
 #include <algorithm>
+#include <iostream>
 
 using namespace std;
 using namespace AlenkaFile;
 
 namespace
 {
+
+const int MAX_CHANNELS = 1000*1000;
 
 template<class A, class B>
 void convertArray(A* a, B* b, int n)
@@ -47,50 +50,67 @@ void decodeArray(void* a, B* b, int code, int n = 1, int offset = 0)
 namespace AlenkaFile
 {
 
-MAT::MAT(const string& filePath) : DataFile(filePath)
+// How to decode data in Matlab: data = double(d)*diag(mults);
+
+MAT::MAT(const string& filePath, const string& dataVarName, const string& frequencyVarName, const string& multipliersVarName)
+	: DataFile(filePath), dataVarName(dataVarName), frequencyVarName(frequencyVarName), multipliersVarName(multipliersVarName)
 {
 	file = Mat_Open(filePath.c_str(), MAT_ACC_RDONLY);
 
 	if (!file)
 		throw runtime_error("Error while opening " + filePath);
 
-	matvar_t* Fs = Mat_VarRead(file, "Fs");
+	// Read sampling rate.
+	matvar_t* Fs = Mat_VarRead(file, frequencyVarName.c_str());
 
-	if (!Fs || Fs->dims[0] <= 0)
-		throw runtime_error("Bad MAT file format");
-
-	decodeArray(Fs->data, &samplingFrequency, Fs->data_type);
-	Mat_VarFree(Fs);
-
-	int i = 0;
-	samplesRecorded = 0;
-
-	while (1)
+	if (Fs)
 	{
-		string varName = "data" + to_string(i);
-
-		matvar_t* var = Mat_VarReadInfo(file, varName.c_str());
-		if (!var)
-			break;
-		data.push_back(var);
-
-		if (var->rank != 2)
+		if (Fs->dims[0] <= 0)
 			throw runtime_error("Bad MAT file format");
 
-		sizes.push_back(static_cast<int>(var->dims[0]));
-		samplesRecorded += var->dims[0];
+		decodeArray(Fs->data, &samplingFrequency, Fs->data_type);
 
-		if (i++ == 0)
-			numberOfChannels = static_cast<int>(var->dims[1]);
+		Mat_VarFree(Fs);
+	}
+	else
+	{
+		cerr << "MAT: " << frequencyVarName << "missing" << endl;
 
-		if (numberOfChannels != static_cast<int>(var->dims[1]))
-			throw runtime_error("All data variables must have the same number of channels/columns");
-
-		if (10*1000 < numberOfChannels)
-			throw runtime_error("Too many channes in " + varName + ". You probably saved the data with channels in rows by mistake.");
+		samplingFrequency = 1000;
 	}
 
-	assert(i > 0);
+	// Read data.
+	numberOfChannels = MAX_CHANNELS;
+	samplesRecorded = 0;
+
+	if (!readDataVar(dataVarName))
+	{
+		int i = 0;
+		string name;
+
+		while (name = dataVarName + to_string(i++), readDataVar(name));
+
+		assert(0 < sizes.size());
+	}
+
+	// Read channel multipliers.
+	matvar_t* mults = Mat_VarRead(file, multipliersVarName.c_str());
+
+	if (mults)
+	{
+		int cols = mults->rank < 2 ? 1 : static_cast<int>(mults->dims[1]);
+		if (static_cast<int>(mults->dims[0]*cols) < numberOfChannels)
+			throw runtime_error("Bad MAT file format");
+
+		multipliers.resize(numberOfChannels);
+		decodeArray(mults->data, multipliers.data(), mults->data_type, numberOfChannels);
+
+		Mat_VarFree(mults);
+	}
+	else
+	{
+		multipliers.clear();
+	}
 }
 
 MAT::~MAT()
@@ -157,7 +177,17 @@ void MAT::readChannelsFloatDouble(vector<T*> dataChannels, uint64_t firstSample,
 		assert(err == 0);
 
 		for (int k = 0; k < numberOfChannels; ++k)
+		{
 			decodeArray(tmpBuffer.data(), dataChannels[k], data[i]->data_type, length, k*length);
+
+			if (!multipliers.empty())
+			{
+				T multi = static_cast<T>(multipliers[k]);
+
+				for (int l = 0; l < length; ++l)
+					dataChannels[k][l] *= multi;
+			}
+		}
 
 		for (auto& e : dataChannels)
 			e += length;
@@ -176,6 +206,35 @@ void MAT::fillDefaultMontage()
 
 	AbstractTrackTable* defaultTracks = getDataModel()->montageTable()->trackTable(0);
 	defaultTracks->insertRows(0, getChannelCount());
+}
+
+bool MAT::readDataVar(const string& varName)
+{
+	matvar_t* var = Mat_VarReadInfo(file, varName.c_str());
+
+	if (!var)
+		return false;
+
+	data.push_back(var);
+
+	if (var->rank != 2)
+		throw runtime_error("Bad MAT file format");
+
+	sizes.push_back(static_cast<int>(var->dims[0]));
+	samplesRecorded += var->dims[0];
+
+	if (numberOfChannels == MAX_CHANNELS)
+	{
+		numberOfChannels = static_cast<int>(var->dims[1]);
+
+		if (MAX_CHANNELS < numberOfChannels)
+			throw runtime_error("Too many channes in " + varName + ". You probably saved the data with channels in rows by mistake.");
+	}
+
+	if (numberOfChannels != static_cast<int>(var->dims[1]))
+		throw runtime_error("All data variables must have the same number of channels/columns");
+
+	return true;
 }
 
 } // namespace AlenkaFile

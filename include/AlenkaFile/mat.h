@@ -13,6 +13,7 @@ namespace AlenkaFile
 
 class MAT : public DataFile
 {
+	const std::string dataVarName, frequencyVarName, multipliersVarName;
 	mat_t* file;
 	double samplingFrequency;
 	int numberOfChannels;
@@ -20,9 +21,10 @@ class MAT : public DataFile
 	std::vector<char> tmpBuffer;
 	std::vector<matvar_t*> data;
 	std::vector<int> sizes;
+	std::vector<double> multipliers;
 
 public:
-	MAT(const std::string& filePath);
+	MAT(const std::string& filePath, const std::string& dataVarName = "data", const std::string& frequencyVarName = "Fs", const std::string& multipliersVarName = "mults");
 	virtual ~MAT();
 
 	virtual double getSamplingFrequency() const override
@@ -54,6 +56,7 @@ private:
 	void readChannelsFloatDouble(std::vector<T*> dataChannels, uint64_t firstSample, uint64_t lastSample);
 
 	void fillDefaultMontage();
+	bool readDataVar(const std::string& varName);
 };
 
 } // namespace AlenkaFile

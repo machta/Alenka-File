@@ -315,4 +315,18 @@ void DataFile::readSignal(double* data, int64_t firstSample, int64_t lastSample)
 	readSignalFloatDouble(this, data, firstSample, lastSample);
 }
 
+string DataFile::getLabel(unsigned int channel)
+{
+	DataModel* model = getDataModel();
+
+	if (model)
+	{
+		AbstractMontageTable* mt = model->montageTable();
+		if (mt)
+			return mt->trackTable(0)->row(channel).label;
+	}
+
+	return "";
+}
+
 } // namespace AlenkaFile

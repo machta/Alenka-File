@@ -411,16 +411,16 @@ void EDF::saveAsWithType(const string& filePath, DataFile* sourceFile, const edf
 	writeSignalInfo(tmpFile, sourceFile, edfhdr);
 	writeMetaInfo(tmpFile, edfhdr);
 
-	int sf = static_cast<int>(round(samplingFrequency));
-	double* buffer = new double[numberOfChannels*sf*sizeof(double)];
+	int fs = static_cast<int>(round(samplingFrequency));
+	unique_ptr<double[]> buffer(new double[numberOfChannels*fs*sizeof(double)]);
 
-	for (uint64_t sampleIndex = 0; sampleIndex < samplesRecorded; sampleIndex += sf)
+	for (uint64_t sampleIndex = 0; sampleIndex < samplesRecorded; sampleIndex += fs)
 	{
-		sourceFile->readSignal(buffer, sampleIndex, sampleIndex + sf - 1);
+		sourceFile->readSignal(buffer.get(), sampleIndex, sampleIndex + fs - 1);
 
 		for (int i = 0; i < numberOfChannels; ++i)
 		{
-			int res = edfwrite_physical_samples(tmpFile, buffer + i*sf);
+			int res = edfwrite_physical_samples(tmpFile, buffer.get() + i*fs);
 
 			if (res != 0)
 				throw runtime_error("edfwrite_physical_samples failed");
@@ -464,7 +464,6 @@ void EDF::saveAsWithType(const string& filePath, DataFile* sourceFile, const edf
 
 	if (res != 0)
 		throw runtime_error("Closing tmp EDF file failed");
-
 }
 
 } // namespace AlenkaFile

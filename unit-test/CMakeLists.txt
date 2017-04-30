@@ -7,7 +7,7 @@ include_directories(googletest/googletest/include)
 # The tests.
 file(GLOB SRC *.cpp *.h)
 add_executable(unit-test ${SRC})
-target_link_libraries(unit-test ${LIBS_TO_LINK_ALENKA_FILE} gtest gtest_main)
+target_link_libraries(unit-test ${LIBS_TO_LINK_ALENKA_FILE} matio gtest gtest_main)
 
 if(MSVC)
 	set_source_files_properties(${SRC} PROPERTIES COMPILE_FLAGS "-W4")

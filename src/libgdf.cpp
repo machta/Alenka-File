@@ -53,6 +53,7 @@ time_t LibGDF::getStartDate(int) const
 	return static_cast<time_t>(round(seconds));
 }
 
+// TODO: Save events to the primary file.
 void LibGDF::save()
 {
 	DataFile::save();

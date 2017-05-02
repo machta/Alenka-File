@@ -5,6 +5,8 @@ project(Alenka-File)
 option(BUILD_TESTS_ALENKA_FILE "Builds unit tests for Alenka-File." OFF)
 set(CMAKE_CXX_STANDARD 11)
 set(BUILD_SHARED_LIBS off CACHE BOOL "")
+
+# First build all the library dependencies.
 include_directories(boost)
 
 if(MSVC)
@@ -21,7 +23,6 @@ else()
 	endif()
 endif()
 
-# First build all the library dependencies.
 include_directories(EDFlib)
 
 set(BUILD_SHARED_LIBS false)

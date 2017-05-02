@@ -1,13 +1,13 @@
 # Build Google Test library.
-set(BUILD_GMOCK OFF)
-set(BUILD_GTEST ON)
-add_subdirectory(googletest)
-include_directories(googletest/googletest/include)
+set(SRC_GTEST googletest/googletest/src/gtest-all.cc googletest/googletest/src/gtest_main.cc)
+include_directories(googletest/googletest/include googletest/googletest)
 
 # The tests.
 file(GLOB SRC *.cpp *.h)
-add_executable(unit-test ${SRC})
-target_link_libraries(unit-test ${LIBS_TO_LINK_ALENKA_FILE} matio gtest gtest_main)
+add_executable(unit-test ${SRC} ${SRC_GTEST})
+
+find_package (Threads)
+target_link_libraries(unit-test ${LIBS_TO_LINK_ALENKA_FILE} matio ${CMAKE_THREAD_LIBS_INIT})
 
 if(MSVC)
 	set_source_files_properties(${SRC} PROPERTIES COMPILE_FLAGS "-W4")

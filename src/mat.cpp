@@ -74,7 +74,7 @@ MAT::MAT(const string& filePath, const string& dataVarName, const string& freque
 	}
 	else
 	{
-		cerr << "MAT: " << frequencyVarName << "missing" << endl;
+		cerr << "Warning: var " << frequencyVarName << " missing in MAT file" << endl;
 
 		samplingFrequency = 1000;
 	}
@@ -89,9 +89,10 @@ MAT::MAT(const string& filePath, const string& dataVarName, const string& freque
 		string name;
 
 		while (name = dataVarName + to_string(i++), readDataVar(name));
-
-		assert(0 < sizes.size());
 	}
+
+	if (sizes.empty())
+		throw runtime_error("Empty MAT file");
 
 	// Read channel multipliers.
 	matvar_t* mults = Mat_VarRead(file, multipliersVarName.c_str());
@@ -174,7 +175,7 @@ void MAT::readChannelsFloatDouble(vector<T*> dataChannels, uint64_t firstSample,
 		int edge[2] = {length, numberOfChannels};
 
 		int err = Mat_VarReadData(file, data[i], tmpBuffer.data(), start, stride, edge);
-		assert(err == 0);
+		assert(err == 0); (void)err;
 
 		for (int k = 0; k < numberOfChannels; ++k)
 		{

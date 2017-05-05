@@ -52,8 +52,7 @@ namespace AlenkaFile
 
 // How to decode data in Matlab: data = double(d)*diag(mults);
 
-MAT::MAT(const string& filePath, const string& dataVarName, const string& frequencyVarName, const string& multipliersVarName, const string& dateVarName)
-	: DataFile(filePath), dataVarName(dataVarName), frequencyVarName(frequencyVarName), multipliersVarName(multipliersVarName), dateVarName(dateVarName)
+MAT::MAT(const string& filePath, const MATvars& varNames) : DataFile(filePath)
 {
 	file = Mat_Open(filePath.c_str(), MAT_ACC_RDONLY);
 
@@ -61,7 +60,7 @@ MAT::MAT(const string& filePath, const string& dataVarName, const string& freque
 		throw runtime_error("Error while opening " + filePath);
 
 	// Read sampling rate.
-	matvar_t* Fs = Mat_VarRead(file, frequencyVarName.c_str());
+	matvar_t* Fs = Mat_VarRead(file, varNames.frequency.c_str());
 
 	if (Fs)
 	{
@@ -74,7 +73,7 @@ MAT::MAT(const string& filePath, const string& dataVarName, const string& freque
 	}
 	else
 	{
-		cerr << "Warning: var " << frequencyVarName << " missing in MAT file" << endl;
+		cerr << "Warning: var " << varNames.frequency << " missing in MAT file" << endl;
 
 		samplingFrequency = 1000;
 	}
@@ -83,19 +82,19 @@ MAT::MAT(const string& filePath, const string& dataVarName, const string& freque
 	numberOfChannels = MAX_CHANNELS;
 	samplesRecorded = 0;
 
-	if (!readDataVar(dataVarName))
+	if (!readDataVar(varNames.data))
 	{
 		int i = 0;
 		string name;
 
-		while (name = dataVarName + to_string(i++), readDataVar(name));
+		while (name = varNames.data + to_string(i++), readDataVar(name));
 	}
 
 	if (sizes.empty())
 		throw runtime_error("Empty MAT file");
 
 	// Read channel multipliers.
-	matvar_t* mults = Mat_VarRead(file, multipliersVarName.c_str());
+	matvar_t* mults = Mat_VarRead(file, varNames.multipliers.c_str());
 
 	if (mults)
 	{
@@ -114,19 +113,50 @@ MAT::MAT(const string& filePath, const string& dataVarName, const string& freque
 	}
 
 	// Read date.
-	matvar_t* dateVar = Mat_VarReadInfo(file, dateVarName.c_str());
+	matvar_t* date = Mat_VarReadInfo(file, varNames.date.c_str());
 
-	if (dateVar)
+	if (date)
 	{
 		char tmp[8];
 
-		int err = Mat_VarReadDataLinear(file, dateVar, tmp, 0, 1, 1);
+		int err = Mat_VarReadDataLinear(file, date, tmp, 0, 1, 1);
 		assert(err == 0); (void)err;
 
-		decodeArray(tmp, &date, dateVar->data_type);
+		decodeArray(tmp, &days, date->data_type);
 	}
 
-	Mat_VarFree(dateVar);
+	Mat_VarFree(date);
+
+	// Read labels.
+	matvar_t* header = Mat_VarReadInfo(file, varNames.header.c_str());
+	labels.resize(numberOfChannels, "");
+
+	if (header && header->class_type == MAT_C_STRUCT)
+	{
+		matvar_t* label = Mat_VarGetStructFieldByName(header, varNames.label.c_str(), 0); // Apparently this doesn't need to be freed.
+
+		if (label && label->class_type == MAT_C_CELL)
+		{
+			for (int i = 0; i < numberOfChannels; ++i)
+			{
+				matvar_t* cell = Mat_VarGetCell(label, i); // And this too.
+
+				if (cell && cell->class_type == MAT_C_CHAR && cell->rank == 2 && cell->dims[0] == 1)
+				{
+					int err = Mat_VarReadDataAll(file, cell); // You must explicitly read the data.
+					assert(err == 0); (void)err;
+
+					int dim1 = static_cast<int>(cell->dims[1]);
+					char* dataPtr = reinterpret_cast<char*>(cell->data);
+
+					for (int j = 0; j < dim1; ++j)
+						labels[i].push_back(dataPtr[j]);
+				}
+			}
+		}
+	}
+
+	Mat_VarFree(header);
 }
 
 MAT::~MAT()
@@ -134,11 +164,6 @@ MAT::~MAT()
 	for (auto e : data)
 		Mat_VarFree(e);
 	Mat_Close(file);
-}
-
-double MAT::getStartDate() const
-{
-	return date;
 }
 
 void MAT::save()
@@ -221,6 +246,16 @@ void MAT::fillDefaultMontage()
 
 	AbstractTrackTable* defaultTracks = getDataModel()->montageTable()->trackTable(0);
 	defaultTracks->insertRows(0, getChannelCount());
+
+	for (unsigned int i = 0; i < getChannelCount(); ++i)
+	{
+		if (!labels[i].empty())
+		{
+			auto r = defaultTracks->row(i);
+			r.label = labels[i];
+			defaultTracks->row(i, r);
+		}
+	}
 }
 
 bool MAT::readDataVar(const string& varName)

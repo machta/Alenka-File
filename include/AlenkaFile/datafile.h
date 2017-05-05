@@ -63,13 +63,12 @@ public:
 	virtual uint64_t getSamplesRecorded() const = 0;
 
 	/**
-	 * @brief Returns the date and time of the start of recording.
+	 * @brief Returns days since year 0.
 	 *
-	 * Some implementations depend on the system time zone,
-	 * so you can manually specify the current time zone to get the universal time.
-	 * For example Prague, Czech Republic, is one hour ahead, so pass 1 to get UTC.
+	 * Works the same as datenum() in Matlab.
 	 */
-	virtual time_t getStartDate(int timeZone = 0) const = 0;
+	virtual double getStartDate() const = 0;
+	// TODO: Add more date unit-tests.
 
 	/**
 	 * @brief Saves the .info file.
@@ -148,6 +147,8 @@ public:
 	virtual double getDigitalMaximum(unsigned int channel) { return 32767; (void)channel;}
 	virtual double getDigitalMinimum(unsigned int channel) { return -32768; (void)channel;}
 	virtual std::string getLabel(unsigned int channel);
+
+	static const int daysUpTo1970 = 719529;
 
 	/**
 	 * @brief Tests endianness.

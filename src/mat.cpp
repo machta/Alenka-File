@@ -52,8 +52,8 @@ namespace AlenkaFile
 
 // How to decode data in Matlab: data = double(d)*diag(mults);
 
-MAT::MAT(const string& filePath, const string& dataVarName, const string& frequencyVarName, const string& multipliersVarName)
-	: DataFile(filePath), dataVarName(dataVarName), frequencyVarName(frequencyVarName), multipliersVarName(multipliersVarName)
+MAT::MAT(const string& filePath, const string& dataVarName, const string& frequencyVarName, const string& multipliersVarName, const string& dateVarName)
+	: DataFile(filePath), dataVarName(dataVarName), frequencyVarName(frequencyVarName), multipliersVarName(multipliersVarName), dateVarName(dateVarName)
 {
 	file = Mat_Open(filePath.c_str(), MAT_ACC_RDONLY);
 
@@ -112,6 +112,21 @@ MAT::MAT(const string& filePath, const string& dataVarName, const string& freque
 	{
 		multipliers.clear();
 	}
+
+	// Read date.
+	matvar_t* dateVar = Mat_VarReadInfo(file, dateVarName.c_str());
+
+	if (dateVar)
+	{
+		char tmp[8];
+
+		int err = Mat_VarReadDataLinear(file, dateVar, tmp, 0, 1, 1);
+		assert(err == 0); (void)err;
+
+		decodeArray(tmp, &date, dateVar->data_type);
+	}
+
+	Mat_VarFree(dateVar);
 }
 
 MAT::~MAT()
@@ -121,10 +136,9 @@ MAT::~MAT()
 	Mat_Close(file);
 }
 
-time_t MAT::getStartDate(int timeZone) const
+double MAT::getStartDate() const
 {
-	(void)timeZone;
-	return 0;
+	return date;
 }
 
 void MAT::save()

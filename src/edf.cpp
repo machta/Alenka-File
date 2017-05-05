@@ -109,7 +109,7 @@ EDF::~EDF()
 		cerr << "Error closing EDF file" << endl;
 }
 
-time_t EDF::getStartDate(int timeZone) const
+double EDF::getStartDate() const
 {
 	tm time;
 
@@ -121,7 +121,7 @@ time_t EDF::getStartDate(int timeZone) const
 	time.tm_min = edfhdr->starttime_minute;
 	time.tm_hour = edfhdr->starttime_hour;
 
-	return mktime(&time) - timeZone*60*60;
+	return static_cast<double>(mktime(&time))/24/60/60 + daysUpTo1970;
 }
 
 // TODO: Allow tracking through a progress dialog as this can take a long time
@@ -409,7 +409,7 @@ void EDF::saveAsWithType(const string& filePath, DataFile* sourceFile, const edf
 
 	// Copy data into the new file.
 	writeSignalInfo(tmpFile, sourceFile, edfhdr);
-	writeMetaInfo(tmpFile, edfhdr);
+	writeMetaInfo(tmpFile, edfhdr); // TODO: Write some of this (at least date) even when saving as/exporting.
 
 	int fs = static_cast<int>(round(samplingFrequency));
 	unique_ptr<double[]> buffer(new double[numberOfChannels*fs*sizeof(double)]);

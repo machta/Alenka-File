@@ -43,14 +43,14 @@ LibGDF::~LibGDF()
 	delete gdfReader;
 }
 
-time_t LibGDF::getStartDate(int) const
+double LibGDF::getStartDate() const
 {
 	uint32_t startDate[2];
 	memcpy(startDate, &gdfReader->getMainHeader_readonly().get_recording_start(), sizeof(startDate));
 
 	double fractionOfDay = ldexp(static_cast<double>(startDate[0]), -32);
-	double seconds = (startDate[1] - 719529 + fractionOfDay)*24*60*60;
-	return static_cast<time_t>(round(seconds));
+	double days = startDate[1];
+	return days + fractionOfDay;
 }
 
 // TODO: Save events to the primary file.

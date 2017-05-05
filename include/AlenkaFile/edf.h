@@ -43,7 +43,7 @@ public:
 	{
 		return samplesRecorded;
 	}
-	virtual time_t getStartDate(int timeZone = 0) const override;
+	virtual double getStartDate() const override;
 	virtual void save() override;
 	virtual bool load() override;
 	virtual void readChannels(std::vector<float*> dataChannels, uint64_t firstSample, uint64_t lastSample) override

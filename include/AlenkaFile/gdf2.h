@@ -36,11 +36,11 @@ public:
 	{
 		return samplesRecorded;
 	}
-	virtual time_t getStartDate(int) const override
+	virtual double getStartDate() const override
 	{
 		double fractionOfDay = ldexp(static_cast<double>(fh.startDate[0]), -32);
-		double seconds = (fh.startDate[1] - 719529 + fractionOfDay)*24*60*60;
-		return static_cast<time_t>(round(seconds));
+		double days = fh.startDate[1];
+		return days + fractionOfDay;
 	}
 	virtual void save() override;
 	virtual bool load() override;

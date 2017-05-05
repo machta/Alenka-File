@@ -124,9 +124,9 @@ void gdfStartTimeTest()
 
 	ASSERT_NO_THROW(file.reset(new T(TEST_DATA_PATH + "gdf/startTime.gdf")));
 
-	time_t time = file->getStartDate();
-	time_t seconds = 1231276659; // Seconds between 1970 and Tue Jan  6 21:17:39 2009
-	EXPECT_EQ(time, seconds);
+	double date = file->getStartDate();
+	double days = 733779.88725694443564862013; // sprintf('%20.20f', datenum(2009, 1, 6, 21, 17, 39)) in Matlab
+	EXPECT_NEAR(date, days, 1./24/60/60/1000);
 }
 
 const int MAT_FS = 100;
@@ -267,9 +267,10 @@ TEST_F(primary_file_test, EDF_start_time)
 
 	ASSERT_NO_THROW(file.reset(new EDF(TEST_DATA_PATH + "edf/edf00.edf")));
 
-	time_t time = file->getStartDate();
-	time_t seconds = 1126779522; // Seconds between 1970 and Thu, 15 Sep 2005 10:18:42 GMT
-	EXPECT_LE(time - seconds, 60*60*24) << "Start time is within 24 hours.";
+	double date = file->getStartDate();
+	double days = 732570.42965277773328125477; // sprintf('%20.20f', datenum(2005, 9, 15, 10, 18, 42)) in Matlab
+	//EXPECT_LE(time - seconds, 60*60*24) << "Start time is within 24 hours.";
+	EXPECT_LT(abs(date - days), 2./24);
 }
 
 TEST_F(primary_file_test, EDF_meta_info)

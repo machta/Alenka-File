@@ -1,7 +1,7 @@
 #ifndef ALENKAFILE_DATAFILE_H
 #define ALENKAFILE_DATAFILE_H
 
-#include "AlenkaFile/abstractdatamodel.h"
+#include "abstractdatamodel.h"
 
 #include <cstdint>
 #include <string>

@@ -1,4 +1,4 @@
-#include "AlenkaFile/datamodel.h"
+#include "../include/AlenkaFile/datamodel.h"
 
 #include <cassert>
 

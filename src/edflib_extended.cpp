@@ -1,6 +1,6 @@
 #include "edflib_extended.h"
 
-#include "../EDFlib/edflib.c"
+#include <edflib.c>
 
 #include <cassert>
 

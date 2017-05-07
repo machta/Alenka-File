@@ -1,6 +1,6 @@
 #include <AlenkaFile/datafile.h>
 
-#include "pugixml.hpp"
+#include <pugixml.hpp>
 
 #include <algorithm>
 #include <cassert>

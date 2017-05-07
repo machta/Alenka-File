@@ -1,7 +1,7 @@
 #ifndef ALENKAFILE_DATAMODEL_H
 #define ALENKAFILE_DATAMODEL_H
 
-#include "AlenkaFile/abstractdatamodel.h"
+#include "abstractdatamodel.h"
 
 #include <vector>
 

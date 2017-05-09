@@ -1,6 +1,7 @@
 #include <AlenkaFile/mat.h>
 
 #include <matio.h>
+#include <boost/date_time.hpp>
 
 #include <cstdint>
 #include <stdexcept>
@@ -9,6 +10,7 @@
 
 using namespace std;
 using namespace AlenkaFile;
+using namespace boost::posix_time;
 
 namespace
 {
@@ -23,10 +25,10 @@ void convertArray(A* a, B* b, int n)
 }
 
 template<class B>
-void decodeArray(void* a, B* b, int code, int n = 1, int offset = 0)
+void decodeArray(void* a, B* b, matio_types type, int n = 1, int offset = 0)
 {
 #define CASE(a_, b_) case a_: convertArray(reinterpret_cast<b_*>(a) + offset, b, n); break;
-	switch (code)
+	switch (type)
 	{
 		CASE(MAT_T_INT8, int8_t);
 		CASE(MAT_T_UINT8, uint8_t);
@@ -45,6 +47,42 @@ void decodeArray(void* a, B* b, int code, int n = 1, int offset = 0)
 #undef CASE
 }
 
+// TODO: Allow adding to these with a parameter from the constructor.
+const vector<locale> formats {
+	locale(locale::classic(), new time_input_facet("%d-%b-%Y %H:%M:%s")),
+	locale(locale::classic(), new time_input_facet("%d-%B-%Y %H:%M:%s")),
+	locale(locale::classic(), new time_input_facet("%Y-%m-%d %H:%M:%s")),
+	locale(locale::classic(), new time_input_facet("%Y/%m/%d %H:%M:%s")),
+	locale(locale::classic(), new time_input_facet("%d.%m.%Y %H:%M:%s"))
+};
+
+time_t pt_to_time_t(const ptime& pt)
+{
+	ptime timet_start(boost::gregorian::date(1970, 1, 1));
+	time_duration diff = pt - timet_start;
+	return diff.ticks()/time_duration::rep_type::ticks_per_second;
+}
+
+bool seconds_from_epoch(const string& s, double* seconds)
+{
+	ptime pt;
+
+	for(size_t i = 0; i < formats.size(); ++i)
+	{
+		istringstream is(s);
+		is.imbue(formats[i]);
+		is >> pt;
+
+		if (pt != ptime())
+		{
+			*seconds = static_cast<double>(pt_to_time_t(pt));
+			return true;
+		}
+	}
+
+	return false;
+}
+
 } // namespace
 
 namespace AlenkaFile
@@ -52,15 +90,46 @@ namespace AlenkaFile
 
 // How to decode data in Matlab: data = double(d)*diag(mults);
 
-MAT::MAT(const string& filePath, const MATvars& varNames) : DataFile(filePath)
+MAT::MAT(const string& filePath, const MATvars& vars) : DataFile(filePath), vars(vars)
 {
 	file = Mat_Open(filePath.c_str(), MAT_ACC_RDONLY);
 
 	if (!file)
 		throw runtime_error("Error while opening " + filePath);
 
-	// Read sampling rate.
-	matvar_t* Fs = Mat_VarRead(file, varNames.frequency.c_str());
+	readSamplingRate();
+	readData();
+	readMults();
+	readDate();
+}
+
+MAT::~MAT()
+{
+	for (auto e : data)
+		Mat_VarFree(e);
+	Mat_Close(file);
+}
+
+void MAT::save()
+{
+	DataFile::save();
+}
+
+bool MAT::load()
+{
+	if (DataFile::loadSecondaryFile() == false)
+	{
+		fillDefaultMontage();
+		loadEvents();
+		return false;
+	}
+
+	return true;
+}
+
+void MAT::readSamplingRate()
+{
+	matvar_t* Fs = Mat_VarRead(file, vars.frequency.c_str());
 
 	if (Fs)
 	{
@@ -68,33 +137,37 @@ MAT::MAT(const string& filePath, const MATvars& varNames) : DataFile(filePath)
 			throw runtime_error("Bad MAT file format");
 
 		decodeArray(Fs->data, &samplingFrequency, Fs->data_type);
-
-		Mat_VarFree(Fs);
 	}
 	else
 	{
-		cerr << "Warning: var " << varNames.frequency << " missing in MAT file" << endl;
+		cerr << "Warning: var " << vars.frequency << " missing in MAT file" << endl;
 
 		samplingFrequency = 1000;
 	}
 
-	// Read data.
+	Mat_VarFree(Fs);
+}
+
+void MAT::readData()
+{
 	numberOfChannels = MAX_CHANNELS;
 	samplesRecorded = 0;
 
-	if (!readDataVar(varNames.data))
+	if (!readDataVar(vars.data))
 	{
 		int i = 0;
 		string name;
 
-		while (name = varNames.data + to_string(i++), readDataVar(name));
+		while (name = vars.data + to_string(i++), readDataVar(name));
 	}
 
 	if (sizes.empty())
 		throw runtime_error("Empty MAT file");
+}
 
-	// Read channel multipliers.
-	matvar_t* mults = Mat_VarRead(file, varNames.multipliers.c_str());
+void MAT::readMults()
+{
+	matvar_t* mults = Mat_VarRead(file, vars.multipliers.c_str());
 
 	if (mults)
 	{
@@ -105,15 +178,18 @@ MAT::MAT(const string& filePath, const MATvars& varNames) : DataFile(filePath)
 		multipliers.resize(numberOfChannels);
 		decodeArray(mults->data, multipliers.data(), mults->data_type, numberOfChannels);
 
-		Mat_VarFree(mults);
 	}
 	else
 	{
 		multipliers.clear();
 	}
 
-	// Read date.
-	matvar_t* date = Mat_VarReadInfo(file, varNames.date.c_str());
+	Mat_VarFree(mults);
+}
+
+void MAT::readDate()
+{
+	matvar_t* date = Mat_VarReadInfo(file, vars.date.c_str());
 
 	if (date)
 	{
@@ -126,14 +202,17 @@ MAT::MAT(const string& filePath, const MATvars& varNames) : DataFile(filePath)
 	}
 
 	Mat_VarFree(date);
+}
 
-	// Read labels.
-	matvar_t* header = Mat_VarReadInfo(file, varNames.header.c_str());
+vector<string> MAT::readLabels()
+{
+	matvar_t* header = Mat_VarReadInfo(file, vars.header.c_str());
+	vector<string> labels;
 	labels.resize(numberOfChannels, "");
 
 	if (header && header->class_type == MAT_C_STRUCT)
 	{
-		matvar_t* label = Mat_VarGetStructFieldByName(header, varNames.label.c_str(), 0); // Apparently this doesn't need to be freed.
+		matvar_t* label = Mat_VarGetStructFieldByName(header, vars.label.c_str(), 0); // Apparently this doesn't need to be freed.
 
 		if (label && label->class_type == MAT_C_CELL)
 		{
@@ -157,30 +236,70 @@ MAT::MAT(const string& filePath, const MATvars& varNames) : DataFile(filePath)
 	}
 
 	Mat_VarFree(header);
+	return labels;
 }
 
-MAT::~MAT()
+void MAT::readEvents(vector<int>* eventPositions, vector<int>* eventDurations)
 {
-	for (auto e : data)
-		Mat_VarFree(e);
-	Mat_Close(file);
-}
+	matvar_t* events = Mat_VarRead(file, vars.events.c_str());
+	bool badDateString = false;
 
-void MAT::save()
-{
-	DataFile::save();
-}
-
-bool MAT::load()
-{
-	if (DataFile::loadSecondaryFile() == false)
+	if (events && events->class_type == MAT_C_STRUCT && 1 < events->rank)
 	{
-		fillDefaultMontage();
-		//loadEvents();
-		return false;
+		int size = static_cast<int>(events->dims[1]);
+		for (int i = 0; i < size; ++i)
+		{
+			matvar_t* position = Mat_VarGetStructFieldByIndex(events, vars.positionIndex, i);
+			double positionValue = -1;
+			double durationValue = 0;
+
+			if (position)
+			{
+				if (position->class_type == MAT_C_CHAR && position->rank == 2 && position->dims[0] == 1)
+				{
+					int dim1 = static_cast<int>(position->dims[1]);
+					char* dataPtr = reinterpret_cast<char*>(position->data);
+
+					string positionString;
+					for (int j = 0; j < dim1; ++j)
+						positionString.push_back(dataPtr[j]);
+
+					double seconds = 0;
+					bool res = !seconds_from_epoch(positionString, &seconds);
+					badDateString = badDateString || res;
+					seconds /= 24*60*60;
+					positionValue = DataFile::daysUpTo1970 + seconds;
+				}
+				else
+				{
+					decodeArray(position->data, &positionValue, position->data_type);
+				}
+
+				positionValue -= days;
+				positionValue *= 24*60*60;
+				positionValue *= samplingFrequency;
+			}
+
+			matvar_t* duration = Mat_VarGetStructFieldByIndex(events, vars.durationIndex, i);
+
+			if (duration)
+			{
+				decodeArray(duration->data, &durationValue, duration->data_type);
+				durationValue *= samplingFrequency;
+			}
+
+			//if (0 < positionValue)
+			{
+				eventPositions->push_back(static_cast<int>(round(positionValue)));
+				eventDurations->push_back(static_cast<int>(round(durationValue)));
+			}
+		}
 	}
 
-	return true;
+	if (badDateString)
+		cerr << "Warning: unrecognized date format" << endl;
+
+	Mat_VarFree(events);
 }
 
 template<typename T>
@@ -241,11 +360,12 @@ void MAT::readChannelsFloatDouble(vector<T*> dataChannels, uint64_t firstSample,
 void MAT::fillDefaultMontage()
 {
 	getDataModel()->montageTable()->insertRows(0);
-
 	assert(getChannelCount() > 0);
 
 	AbstractTrackTable* defaultTracks = getDataModel()->montageTable()->trackTable(0);
 	defaultTracks->insertRows(0, getChannelCount());
+
+	vector<string> labels = readLabels();
 
 	for (unsigned int i = 0; i < getChannelCount(); ++i)
 	{
@@ -285,6 +405,42 @@ bool MAT::readDataVar(const string& varName)
 		throw runtime_error("All data variables must have the same number of channels/columns");
 
 	return true;
+}
+
+void MAT::loadEvents()
+{
+	vector<int> eventPositions;
+	vector<int> eventDurations;
+	readEvents(&eventPositions, &eventDurations);
+
+	AbstractEventTable* eventTable = getDataModel()->montageTable()->eventTable(0);
+
+	assert(eventDurations.size() == eventDurations.size());
+	int count = static_cast<int>(eventDurations.size());
+
+	if (count > 0)
+	{
+		AbstractEventTypeTable* ett = getDataModel()->eventTypeTable();
+		ett->insertRows(0);
+
+		EventType et = ett->row(0);
+		et.name = "MAT events";
+		ett->row(0, et);
+
+		eventTable->insertRows(0, count);
+
+		for (int i = 0; i < count; ++i)
+		{
+			Event e = eventTable->row(i);
+
+			e.type = 0;
+			e.position = eventPositions[i];
+			e.duration = eventDurations[i];
+			e.channel = -1;
+
+			eventTable->row(i, e);
+		}
+	}
 }
 
 } // namespace AlenkaFile

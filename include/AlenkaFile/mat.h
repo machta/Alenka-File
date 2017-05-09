@@ -19,11 +19,17 @@ struct MATvars
 		multipliers = "mults",
 		date = "date",
 		header = "header",
-		label = "label";
+		label = "label",
+		events = "events";
+
+	int
+		positionIndex = 0,
+		durationIndex = 0;
 };
 
 class MAT : public DataFile
 {
+	MATvars vars;
 	mat_t* file;
 	double samplingFrequency;
 	int numberOfChannels;
@@ -33,10 +39,9 @@ class MAT : public DataFile
 	std::vector<int> sizes;
 	std::vector<double> multipliers;
 	double days = daysUpTo1970;
-	std::vector<std::string> labels;
 
 public:
-	MAT(const std::string& filePath, const MATvars& varNames = MATvars());
+	MAT(const std::string& filePath, const MATvars& vars = MATvars());
 	virtual ~MAT();
 
 	virtual double getSamplingFrequency() const override
@@ -67,11 +72,19 @@ public:
 	}
 
 private:
+	void readSamplingRate();
+	void readData();
+	void readMults();
+	void readDate();
+	std::vector<std::string> readLabels();
+	void readEvents(std::vector<int>* eventPositions, std::vector<int>* eventDurations);
+
 	template<typename T>
 	void readChannelsFloatDouble(std::vector<T*> dataChannels, uint64_t firstSample, uint64_t lastSample);
 
 	void fillDefaultMontage();
 	bool readDataVar(const std::string& varName);
+	void loadEvents();
 };
 
 } // namespace AlenkaFile

@@ -78,14 +78,14 @@ public:
 	}
 };
 
-template <class T>
+template<class T>
 void fillVector(vector<T>& v, T val)
 {
 	for (auto& e : v)
 		e = val;
 }
 
-template <class T, class U>
+template<class T, class U>
 void compareMatrix(T* arr, U* sol, int rows, int cols, int arrRowLen, int solRowLen, double* relErr, double* absErr)
 {
 	double rel = 0;
@@ -109,13 +109,13 @@ void compareMatrix(T* arr, U* sol, int rows, int cols, int arrRowLen, int solRow
 	*absErr = abs;
 }
 
-template <class T, class U>
+template<class T, class U>
 void compareMatrix(T* arr, U* sol, int rows, int cols, double* relErr, double* absErr)
 {
 	compareMatrix(arr, sol, rows, cols, cols, cols, relErr, absErr);
 }
 
-template <class T, class U>
+template<class T, class U>
 void compareMatrixAverage(T* arr, U* sol, int rows, int cols, int arrRowLen, int solRowLen, double* relErr, double* absErr)
 {
 	double rel = 0;
@@ -140,7 +140,7 @@ void compareMatrixAverage(T* arr, U* sol, int rows, int cols, int arrRowLen, int
 	*absErr = abs/count;
 }
 
-template <class T, class U>
+template<class T, class U>
 void compareMatrixAverage(T* arr, U* sol, int rows, int cols, double* relErr, double* absErr)
 {
 	compareMatrixAverage(arr, sol, rows, cols, cols, cols, relErr, absErr);

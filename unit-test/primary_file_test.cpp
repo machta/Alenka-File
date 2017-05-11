@@ -287,28 +287,45 @@ TEST_F(primary_file_test, EDF_data_00)
 // TODO: add a small edf file to test; like the gdf01
 
 // Tests of MAT.
+
 TEST_F(primary_file_test, MAT_meta_info_old)
 {
-	metaInfoTest(unique_ptr<DataFile>(mat4.makeMAT()).get(), &mat4);
-	metaInfoTest(unique_ptr<DataFile>(mat6.makeMAT()).get(), &mat6);
+	MATvars vars;
+	vars.data = "data";
+	vars.frequency = "Fs";
+
+	metaInfoTest(unique_ptr<DataFile>(mat4.makeMAT(vars)).get(), &mat4);
+	metaInfoTest(unique_ptr<DataFile>(mat6.makeMAT(vars)).get(), &mat6);
 }
 
-TEST_F(primary_file_test, MAT_meta_info_new)
+TEST_F(primary_file_test, MAT_meta_info_compression)
 {
-	metaInfoTest(unique_ptr<DataFile>(mat7.makeMAT()).get(), &mat7);
-	metaInfoTest(unique_ptr<DataFile>(mat73.makeMAT()).get(), &mat73);
-	metaInfoTest(unique_ptr<DataFile>(matDefault.makeMAT()).get(), &matDefault);
+	MATvars vars;
+	vars.data = "data";
+	vars.frequency = "Fs";
+
+	metaInfoTest(unique_ptr<DataFile>(mat7.makeMAT(vars)).get(), &mat7);
+	metaInfoTest(unique_ptr<DataFile>(mat73.makeMAT(vars)).get(), &mat73);
+	metaInfoTest(unique_ptr<DataFile>(matDefault.makeMAT(vars)).get(), &matDefault);
 }
 
 TEST_F(primary_file_test, MAT_data_old)
 {
-	dataTest(unique_ptr<DataFile>(mat4.makeMAT()).get(), &mat4);
-	dataTest(unique_ptr<DataFile>(mat6.makeMAT()).get(), &mat6);
+	MATvars vars;
+	vars.data = "data";
+	vars.frequency = "Fs";
+
+	dataTest(unique_ptr<DataFile>(mat4.makeMAT(vars)).get(), &mat4);
+	dataTest(unique_ptr<DataFile>(mat6.makeMAT(vars)).get(), &mat6);
 }
 
-TEST_F(primary_file_test, MAT_data_new)
+TEST_F(primary_file_test, MAT_data_compression)
 {
-	dataTest(unique_ptr<DataFile>(mat7.makeMAT()).get(), &mat7);
-	dataTest(unique_ptr<DataFile>(mat73.makeMAT()).get(), &mat73);
-	dataTest(unique_ptr<DataFile>(matDefault.makeMAT()).get(), &matDefault);
+	MATvars vars;
+	vars.data = "data";
+	vars.frequency = "Fs";
+
+	dataTest(unique_ptr<DataFile>(mat7.makeMAT(vars)).get(), &mat7);
+	dataTest(unique_ptr<DataFile>(mat73.makeMAT(vars)).get(), &mat73);
+	dataTest(unique_ptr<DataFile>(matDefault.makeMAT(vars)).get(), &matDefault);
 }

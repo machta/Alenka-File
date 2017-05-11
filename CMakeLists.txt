@@ -35,7 +35,7 @@ add_subdirectory(pugixml)
 include_directories(pugixml/src)
 
 # If you want to use this library, you need to link to these libraries.
-set(LIBS_TO_LINK_ALENKA_FILE alenka-file GDF pugixml)
+set(LIBS_TO_LINK_ALENKA_FILE alenka-file GDF pugixml matio)
 set(LIBS_TO_LINK_ALENKA_FILE ${LIBS_TO_LINK_ALENKA_FILE} PARENT_SCOPE)
 
 # The library.

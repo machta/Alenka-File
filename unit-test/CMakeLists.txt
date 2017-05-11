@@ -7,7 +7,7 @@ file(GLOB SRC *.cpp *.h)
 add_executable(unit-test ${SRC} ${SRC_GTEST})
 
 find_package (Threads)
-target_link_libraries(unit-test ${LIBS_TO_LINK_ALENKA_FILE} matio ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(unit-test ${LIBS_TO_LINK_ALENKA_FILE} ${CMAKE_THREAD_LIBS_INIT})
 
 if(MSVC)
 	set_source_files_properties(${SRC} PROPERTIES COMPILE_FLAGS "-W4")

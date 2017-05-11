@@ -48,9 +48,10 @@ public:
 	{
 		return new LibGDF(path + ".gdf");
 	}
-	DataFile* makeMAT()
+	template<class... T>
+	DataFile* makeMAT(T... p)
 	{
-		return new MAT(path + ".mat");
+		return new MAT(path + ".mat", p...);
 	}
 
 	const vector<double>& getValues()

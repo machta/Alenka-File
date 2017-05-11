@@ -14,8 +14,8 @@ namespace AlenkaFile
 struct MATvars
 {
 	std::string
-		data = "data",
-		frequency = "Fs",
+		data = "d",
+		frequency = "fs",
 		multipliers = "mults",
 		date = "date",
 		header = "header",

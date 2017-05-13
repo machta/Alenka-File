@@ -13,35 +13,37 @@ namespace AlenkaFile
 
 struct MATvars
 {
+	std::vector<std::string> data{"d"};
+
 	std::string
-		data = "d",
 		frequency = "fs",
 		multipliers = "mults",
 		date = "date",
-		header = "header",
-		label = "label",
-		events = "events";
-
-	int
-		positionIndex = 0,
-		durationIndex = 0;
+		label = "header.label",
+		eventPosition = "out.pos",
+		eventDuration = "out.dur",
+		eventChannel = "out.chan";
 };
 
 class MAT : public DataFile
 {
+	const int MAX_CHANNELS = 10*1000;
 	MATvars vars;
-	mat_t* file;
+	std::vector<mat_t*> files;
 	double samplingFrequency;
 	int numberOfChannels;
 	uint64_t samplesRecorded;
 	std::vector<char> tmpBuffer;
 	std::vector<matvar_t*> data;
+	std::vector<matvar_t*> dataToFree;
+	std::vector<unsigned int> dataFileIndex;
 	std::vector<int> sizes;
 	std::vector<double> multipliers;
 	double days = daysUpTo1970;
 
 public:
 	MAT(const std::string& filePath, const MATvars& vars = MATvars());
+	MAT(const std::vector<std::string>& filePaths, const MATvars& vars = MATvars());
 	virtual ~MAT();
 
 	virtual double getSamplingFrequency() const override
@@ -72,18 +74,19 @@ public:
 	}
 
 private:
+	void openMatFile(const std::string& filePath);
+	void construct();
 	void readSamplingRate();
 	void readData();
 	void readMults();
 	void readDate();
 	std::vector<std::string> readLabels();
-	void readEvents(std::vector<int>* eventPositions, std::vector<int>* eventDurations);
+	void readEvents(std::vector<int>* eventPositions, std::vector<int>* eventDurations, std::vector<int>* eventChannels);
 
 	template<typename T>
 	void readChannelsFloatDouble(std::vector<T*> dataChannels, uint64_t firstSample, uint64_t lastSample);
 
 	void fillDefaultMontage();
-	bool readDataVar(const std::string& varName);
 	void loadEvents();
 };
 

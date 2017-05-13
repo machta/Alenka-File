@@ -291,17 +291,20 @@ TEST_F(primary_file_test, EDF_data_00)
 TEST_F(primary_file_test, MAT_meta_info_old)
 {
 	MATvars vars;
-	vars.data = "data";
+	vars.data = vector<string>{"data0", "data1"};
 	vars.frequency = "Fs";
 
 	metaInfoTest(unique_ptr<DataFile>(mat4.makeMAT(vars)).get(), &mat4);
+
+	vars.data = vector<string>{"data0"};
+
 	metaInfoTest(unique_ptr<DataFile>(mat6.makeMAT(vars)).get(), &mat6);
 }
 
 TEST_F(primary_file_test, MAT_meta_info_compression)
 {
 	MATvars vars;
-	vars.data = "data";
+	vars.data = vector<string>{"data0", "data1"};
 	vars.frequency = "Fs";
 
 	metaInfoTest(unique_ptr<DataFile>(mat7.makeMAT(vars)).get(), &mat7);
@@ -312,17 +315,20 @@ TEST_F(primary_file_test, MAT_meta_info_compression)
 TEST_F(primary_file_test, MAT_data_old)
 {
 	MATvars vars;
-	vars.data = "data";
+	vars.data = vector<string>{"data0", "data1"};
 	vars.frequency = "Fs";
 
 	dataTest(unique_ptr<DataFile>(mat4.makeMAT(vars)).get(), &mat4);
+
+	vars.data = vector<string>{"data0"};
+
 	dataTest(unique_ptr<DataFile>(mat6.makeMAT(vars)).get(), &mat6);
 }
 
 TEST_F(primary_file_test, MAT_data_compression)
 {
 	MATvars vars;
-	vars.data = "data";
+	vars.data = vector<string>{"data0", "data1"};
 	vars.frequency = "Fs";
 
 	dataTest(unique_ptr<DataFile>(mat7.makeMAT(vars)).get(), &mat7);

@@ -148,7 +148,7 @@ public:
 	virtual double getDigitalMinimum(unsigned int channel) { return -32768; (void)channel;}
 	virtual std::string getLabel(unsigned int channel);
 
-	static const int daysUpTo1970 = 719529;
+	static const int daysUpTo1970 = 719529; // datenum('01-Jan-1970')
 
 	/**
 	 * @brief Tests endianness.

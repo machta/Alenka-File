@@ -30,6 +30,7 @@ public:
 	virtual void removeRows(int row, int count = 1) = 0;
 	virtual EventType row(int i) const = 0;
 	virtual void row(int i, const EventType& value) = 0;
+	virtual EventType defaultValue(int row) const = 0;
 };
 
 struct Event
@@ -56,6 +57,7 @@ public:
 	virtual void removeRows(int row, int count = 1) = 0;
 	virtual Event row(int i) const = 0;
 	virtual void row(int i, const Event& value) = 0;
+	virtual Event defaultValue(int row) const = 0;
 };
 
 struct Track
@@ -81,6 +83,7 @@ public:
 	virtual void removeRows(int row, int count = 1) = 0;
 	virtual Track row(int i) const = 0;
 	virtual void row(int i, const Track& value) = 0;
+	virtual Track defaultValue(int row) const = 0;
 };
 
 struct Montage
@@ -103,6 +106,7 @@ public:
 	virtual void removeRows(int row, int count = 1) = 0;
 	virtual Montage row(int i) const = 0;
 	virtual void row(int i, const Montage& value) = 0;
+	virtual Montage defaultValue(int row) const = 0;
 	virtual AbstractEventTable* eventTable(int i) = 0;
 	virtual const AbstractEventTable* eventTable(int i) const = 0;
 	virtual AbstractTrackTable* trackTable(int i) = 0;

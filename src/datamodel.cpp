@@ -21,18 +21,8 @@ namespace AlenkaFile
 
 void EventTypeTable::insertRows(int row, int count)
 {
-	for (int i = 0; i < count; i++)
-	{
-		EventType et;
-
-		et.id = row + i;
-		et.name = "Type " + to_string(row + i);
-		et.opacity = 0.25;
-		et.color[0] = 255; et.color[1] = et.color[2] = 0;
-		et.hidden = false;
-
-		table.insert(table.begin() + row + i, et);
-	}
+	for (int i = 0; i < count; ++i)
+		table.insert(table.begin() + row + i, defaultValue(row + i));
 }
 
 void EventTypeTable::removeRows(int row, int count)
@@ -40,20 +30,23 @@ void EventTypeTable::removeRows(int row, int count)
 	eraseVector(table, row, count);
 }
 
+EventType EventTypeTable::defaultValue(int row) const
+{
+	EventType et;
+
+	et.id = row;
+	et.name = "Type " + to_string(row);
+	et.opacity = 0.25;
+	et.color[0] = 255; et.color[1] = et.color[2] = 0;
+	et.hidden = false;
+
+	return et;
+}
+
 void EventTable::insertRows(int row, int count)
 {
-	for (int i = 0; i < count; i++)
-	{
-		Event e;
-
-		e.label = "Event " + to_string(row + i);
-		e.type = -1;
-		e.position = 0;
-		e.duration = 1;
-		e.channel = -2;
-
-		table.insert(table.begin() + row + i, e);
-	}
+	for (int i = 0; i < count; ++i)
+		table.insert(table.begin() + row + i, defaultValue(row + i));
 }
 
 void EventTable::removeRows(int row, int count)
@@ -61,25 +54,41 @@ void EventTable::removeRows(int row, int count)
 	eraseVector(table, row, count);
 }
 
+Event EventTable::defaultValue(int row) const
+{
+	Event e;
+
+	e.label = "Event " + to_string(row);
+	e.type = -1;
+	e.position = 0;
+	e.duration = 1;
+	e.channel = -2;
+
+	return e;
+}
+
 void TrackTable::insertRows(int row, int count)
 {
-	for (int i = 0; i < count; i++)
-	{
-		Track t;
-
-		t.label = "T " + to_string(row + i);
-		t.code = "out = in(" + to_string(row + i) + ");";
-		t.color[0] = t.color[1] = t.color[2] = 0;
-		t.amplitude = 1;
-		t.hidden = false;
-
-		table.insert(table.begin() + row + i, t);
-	}
+	for (int i = 0; i < count; ++i)
+		table.insert(table.begin() + row + i, defaultValue(row + i));
 }
 
 void TrackTable::removeRows(int row, int count)
 {
 	eraseVector(table, row, count);
+}
+
+Track TrackTable::defaultValue(int row) const
+{
+	Track t;
+
+	t.label = "T " + to_string(row);
+	t.code = "out = in(" + to_string(row) + ");";
+	t.color[0] = t.color[1] = t.color[2] = 0;
+	t.amplitude = 1;
+	t.hidden = false;
+
+	return t;
 }
 
 MontageTable::~MontageTable()
@@ -95,15 +104,8 @@ MontageTable::~MontageTable()
 
 void MontageTable::insertRows(int row, int count)
 {
-	for (int i = 0; i < count; i++)
-	{
-		Montage m;
-
-		m.name = "Montage " + to_string(row + i);
-		m.save = false;
-
-		table.insert(table.begin() + row + i, m);
-	}
+	for (int i = 0; i < count; ++i)
+		table.insert(table.begin() + row + i, defaultValue(row + i));
 
 	eTable.insert(eTable.begin() + row, count, nullptr);
 	tTable.insert(tTable.begin() + row, count, nullptr);
@@ -125,6 +127,16 @@ void MontageTable::removeRows(int row, int count)
 	}
 	eraseVector(eTable, row, count);
 	eraseVector(tTable, row, count);
+}
+
+Montage MontageTable::defaultValue(int row) const
+{
+	Montage m;
+
+	m.name = "Montage " + to_string(row);
+	m.save = false;
+
+	return m;
 }
 
 } // namespace AlenkaFile

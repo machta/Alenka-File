@@ -259,7 +259,7 @@ void MAT::readMults()
 		{
 			multipliers = readDoubleArray(file, mults);
 
-			if (multipliers.size() < numberOfChannels)
+			if (static_cast<int>(multipliers.size()) < numberOfChannels)
 				throw runtime_error("Bad MAT file format");
 
 			multipliers.resize(numberOfChannels);

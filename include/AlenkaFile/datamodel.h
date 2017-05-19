@@ -19,6 +19,7 @@ public:
 	virtual void removeRows(int row, int count) override;
 	virtual EventType row(int i) const override { return table[i]; }
 	virtual void row(int i, const EventType& value) override { table[i] = value; }
+	virtual EventType defaultValue(int row) const override;
 };
 
 class EventTable : public AbstractEventTable
@@ -32,6 +33,7 @@ public:
 	virtual void removeRows(int row, int count = 1) override;
 	virtual Event row(int i) const override { return table[i]; }
 	virtual void row(int i, const Event& value) override { table[i] = value; }
+	virtual Event defaultValue(int row) const override;
 };
 
 class TrackTable : public AbstractTrackTable
@@ -45,6 +47,7 @@ public:
 	virtual void removeRows(int row, int count = 1) override;
 	virtual Track row(int i) const override { return table[i]; }
 	virtual void row(int i, const Track& value) override { table[i] = value; }
+	virtual Track defaultValue(int row) const override;
 };
 
 class MontageTable : public AbstractMontageTable
@@ -60,6 +63,7 @@ public:
 	virtual void removeRows(int row, int count = 1) override;
 	virtual Montage row(int i) const override { return table[i]; }
 	virtual void row(int i, const Montage& value) override { table[i] = value; }
+	virtual Montage defaultValue(int row) const override;
 	virtual AbstractEventTable* eventTable(int i) override { return eTable[i]; }
 	virtual const AbstractEventTable* eventTable(int i) const override { return eTable[i]; }
 	virtual AbstractTrackTable* trackTable(int i) override { return tTable[i]; }

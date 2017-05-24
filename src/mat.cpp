@@ -1,7 +1,6 @@
 #include <AlenkaFile/mat.h>
 
 #include <matio.h>
-#include <boost/date_time.hpp>
 
 #include <cstdint>
 #include <stdexcept>
@@ -10,7 +9,6 @@
 
 using namespace std;
 using namespace AlenkaFile;
-using namespace boost::posix_time;
 
 namespace
 {

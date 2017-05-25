@@ -1,7 +1,7 @@
 #ifndef ALENKAFILE_EDF_H
 #define ALENKAFILE_EDF_H
 
-#include <AlenkaFile/datafile.h>
+#include "datafile.h"
 
 class edf_hdr_struct;
 

@@ -1,4 +1,4 @@
-#include <AlenkaFile/datafile.h>
+#include "../include/AlenkaFile/datafile.h"
 
 #include <pugixml.hpp>
 

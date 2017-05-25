@@ -30,33 +30,28 @@ include_directories(pugixml/src)
 set(LIBS_TO_LINK_ALENKA_FILE alenka-file pugixml matio)
 set(LIBS_TO_LINK_ALENKA_FILE ${LIBS_TO_LINK_ALENKA_FILE} PARENT_SCOPE)
 
-# The library.
-file(GLOB SRC src/* include/AlenkaFile/*.h)
+# Alenka-File library.
 file(GLOB SRC_BOOST_S boost/libs/system/src/*.cpp)
 file(GLOB SRC_BOOST_FS boost/libs/filesystem/src/*.cpp)
 
+set(SRC
+	include/AlenkaFile/abstractdatamodel.h
+	include/AlenkaFile/datafile.h
+	include/AlenkaFile/datamodel.h
+	include/AlenkaFile/edf.h
+	include/AlenkaFile/gdf2.h
+	include/AlenkaFile/mat.h
+	src/datafile.cpp
+	src/datamodel.cpp
+	src/edf.cpp
+	src/edflib_extended.cpp
+	src/edflib_extended.h
+	src/gdf2.cpp
+	src/mat.cpp
+)
+
 add_library(alenka-file STATIC ${SRC} ${SRC_BOOST_S} ${SRC_BOOST_FS})
-
-if(MSVC)
-	set_source_files_properties(${SRC} PROPERTIES COMPILE_FLAGS "-W4")
-	add_definitions(-DBOOST_FILESYSTEM_NO_LIB -DBOOST_SYSTEM_NO_LIB -DBOOST_DATE_TIME_NO_LIB) # This stops Microsoft's linker from needing the static libraries.
-else()
-	set_source_files_properties(${SRC} PROPERTIES COMPILE_FLAGS "-Wall -pedantic -Wextra -Wconversion")
-
-	#SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} --coverage")
-	#SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} --coverage")
-endif()
-
-include_directories(include)
 
 if(BUILD_TESTS_ALENKA_FILE)
 	add_subdirectory(unit-test)
 endif()
-
-# Install rule.
-file(GLOB HEADERS include/AlenkaFile/*)
-
-add_custom_target(install-alenka-file
-	COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/lib ${CMAKE_INSTALL_PREFIX}/include/AlenkaFile
-	COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:alenka-file> $<TARGET_FILE:pugixml> ${CMAKE_INSTALL_PREFIX}/lib
-	COMMAND ${CMAKE_COMMAND} -E copy_if_different ${HEADERS} ${CMAKE_INSTALL_PREFIX}/include/AlenkaFile)

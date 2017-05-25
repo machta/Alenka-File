@@ -1,4 +1,4 @@
-#include <AlenkaFile/gdf2.h>
+#include "../include/AlenkaFile/gdf2.h"
 
 #include <boost/filesystem.hpp>
 

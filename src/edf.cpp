@@ -1,4 +1,4 @@
-#include <AlenkaFile/edf.h>
+#include "../include/AlenkaFile/edf.h"
 
 #include "edflib_extended.h"
 #include <boost/filesystem.hpp>

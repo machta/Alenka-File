@@ -1,7 +1,7 @@
 #ifndef ALENKAFILE_MAT_H
 #define ALENKAFILE_MAT_H
 
-#include <AlenkaFile/datafile.h>
+#include "datafile.h"
 
 #include <vector>
 

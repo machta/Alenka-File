@@ -1,7 +1,7 @@
 #ifndef ALENKAFILE_GDF2_H
 #define ALENKAFILE_GDF2_H
 
-#include <AlenkaFile/datafile.h>
+#include "datafile.h"
 
 #include <cmath>
 #include <fstream>

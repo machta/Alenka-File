@@ -1,4 +1,4 @@
-#include <AlenkaFile/mat.h>
+#include "../include/AlenkaFile/mat.h"
 
 #include <matio.h>
 

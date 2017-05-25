@@ -33,7 +33,6 @@ CMakeLists.txt.user
 build*
 unit-test/googletest
 
-libgdf
 EDFlib
 pugixml
 boost

@@ -5,16 +5,6 @@
 # This script downloads all dependant libraries.
 # Use Git Bash or a similar tool to run this on Windows.
 
-if [ -d libgdf ]
-then
-	libgdf=skipped
-else
-	git clone --depth 1 https://github.com/mbillingr/libgdf.git &&
-	sed -ri 's/(find_package.*)/#\1/' libgdf/libgdf/CMakeLists.txt &&
-	sed -ri 's/(add_subdirectory.*tools.*)/#\1/' libgdf/CMakeLists.txt &&
-	libgdf=OK || libgdf=fail
-fi
-
 if [ -d EDFlib ]
 then
 	EDFlib=skipped
@@ -78,7 +68,6 @@ echo
 echo ========== Download summary ==========
 echo "Library path            Status"
 echo ======================================
-echo "libgdf                  $libgdf"
 echo "EDFlib                  $EDFlib"
 echo "pugixml                 $pugixml"
 echo "unit-test/googletest    $googletest"

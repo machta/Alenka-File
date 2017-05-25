@@ -21,17 +21,13 @@ endif()
 
 include_directories(EDFlib)
 
-set(BUILD_SHARED_LIBS false)
-# This macro turns on my changes in the library that handle a newer version of the GDF format.
-add_definitions(-DALLOW_GDF_V_251)
-add_subdirectory(libgdf)
-include_directories(libgdf/libgdf/include)
+set(BUILD_SHARED_LIBS false) # TODO: Check if this is needed.
 
 add_subdirectory(pugixml)
 include_directories(pugixml/src)
 
 # If you want to use this library, you need to link to these libraries.
-set(LIBS_TO_LINK_ALENKA_FILE alenka-file GDF pugixml matio)
+set(LIBS_TO_LINK_ALENKA_FILE alenka-file pugixml matio)
 set(LIBS_TO_LINK_ALENKA_FILE ${LIBS_TO_LINK_ALENKA_FILE} PARENT_SCOPE)
 
 # The library.
@@ -62,5 +58,5 @@ file(GLOB HEADERS include/AlenkaFile/*)
 
 add_custom_target(install-alenka-file
 	COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/lib ${CMAKE_INSTALL_PREFIX}/include/AlenkaFile
-	COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:alenka-file> $<TARGET_FILE:GDF> $<TARGET_FILE:pugixml> ${CMAKE_INSTALL_PREFIX}/lib
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:alenka-file> $<TARGET_FILE:pugixml> ${CMAKE_INSTALL_PREFIX}/lib
 	COMMAND ${CMAKE_COMMAND} -E copy_if_different ${HEADERS} ${CMAKE_INSTALL_PREFIX}/include/AlenkaFile)

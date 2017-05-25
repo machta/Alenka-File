@@ -351,11 +351,6 @@ TEST(data_model_test, test_mont_GDF2)
 	testMontFile<GDF2>("unit-test/data/gdf/gdf01.gdf", "gdf");
 }
 
-TEST(data_model_test, test_mont_LibGDF)
-{
-	testMontFile<LibGDF>("unit-test/data/gdf/gdf01.gdf", "gdf");
-}
-
 TEST(data_model_test, test_mont_EDF)
 {
 	testMontFile<EDF>("unit-test/data/edf/edf00.edf", "edf");
@@ -390,5 +385,3 @@ TEST(data_model_test, test_primary_EDF)
 
 	delete dataModel;
 }
-
-// TODO: Save events to LibGDF.

@@ -1,7 +1,6 @@
 #include <AlenkaFile/datafile.h>
 #include <AlenkaFile/gdf2.h>
 #include <AlenkaFile/edf.h>
-#include <AlenkaFile/libgdf.h>
 #include <AlenkaFile/mat.h>
 
 #include <vector>
@@ -43,10 +42,6 @@ public:
 	DataFile* makeEDF()
 	{
 		return new EDF(path + ".edf");
-	}
-	DataFile* makeLibGDF()
-	{
-		return new LibGDF(path + ".gdf");
 	}
 	template<class... T>
 	DataFile* makeMAT(T... p)

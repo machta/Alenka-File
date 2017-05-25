@@ -160,9 +160,6 @@ TEST_F(primary_file_test, outOfBounds)
 	outOfBoundsTest(unique_ptr<DataFile>(gdf00.makeGDF2()).get());
 	outOfBoundsTest(unique_ptr<DataFile>(gdf01.makeGDF2()).get());
 
-	outOfBoundsTest(unique_ptr<DataFile>(gdf00.makeLibGDF()).get());
-	outOfBoundsTest(unique_ptr<DataFile>(gdf01.makeLibGDF()).get());
-	
 	outOfBoundsTest(unique_ptr<DataFile>(edf00.makeEDF()).get());
 
 	//mat4.outOfBoundsTest(unique_ptr<DataFile>(mat4.makeMAT()).get()); // TODO: Fix this
@@ -207,46 +204,6 @@ TEST_F(primary_file_test, GDF2_data_00) // TODO: generate new values files with 
 TEST_F(primary_file_test, GDF2_data_01)
 {
 	dataTest(unique_ptr<DataFile>(gdf01.makeGDF2()).get(), &gdf01);
-}
-
-// Tests of LibGDF.
-TEST_F(primary_file_test, LibGDF_exceptions)
-{
-	//EXPECT_ANY_THROW(printException([this] () { LibGDF file(TEST_DATA_PATH + "gdf/empty.gdf"); }));
-	//EXPECT_ANY_THROW(printException([this] () { LibGDF file(TEST_DATA_PATH + "gdf/headerOnly.gdf"); }));
-	// These two tests halt on assertions. Would it be better if exceptions were thrown instead?
-
-	EXPECT_ANY_THROW(printException([this] () { LibGDF file(TEST_DATA_PATH + "gdf/badType.gdf"); }));
-	EXPECT_ANY_THROW(printException([this] () { LibGDF file(TEST_DATA_PATH + "gdf/badFile.gdf"); }));
-
-	unique_ptr<DataFile> file;
-
-	vector<double> data;
-	data.insert(data.begin(), 100000, 0);
-
-	ASSERT_NO_THROW(file.reset(new LibGDF(TEST_DATA_PATH + "gdf/gdf00.gdf")));
-	EXPECT_THROW(printException([this, &file, &data] () { file->readSignal(data.data(), 100, 50); }), invalid_argument);
-}
-
-TEST_F(primary_file_test, LibGDF_start_time)
-{
-	gdfStartTimeTest<LibGDF>();
-}
-
-TEST_F(primary_file_test, LibGDF_meta_info)
-{
-	metaInfoTest(unique_ptr<DataFile>(gdf00.makeLibGDF()).get(), &gdf00);
-	metaInfoTest(unique_ptr<DataFile>(gdf01.makeLibGDF()).get(), &gdf01);
-}
-
-TEST_F(primary_file_test, LibGDF_data_00)
-{
-	dataTest(unique_ptr<DataFile>(gdf00.makeLibGDF()).get(), &gdf00);
-}
-
-TEST_F(primary_file_test, LibGDF_data_01)
-{
-	dataTest(unique_ptr<DataFile>(gdf01.makeLibGDF()).get(), &gdf01);
 }
 
 // Tests of EDFlib.
